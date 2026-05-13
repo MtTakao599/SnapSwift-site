@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SnapSwift - 画像を見る、そのまま最適化する。</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --sky: #e8f4fd; --sky-mid: #b3d9f5; --blue: #3a9fd8; --blue-dark: #1e6fa8;
+    --accent: #f5a623; --accent-dark: #d4891a; --text: #2c3e50; --text-sub: #5a7a8a;
+    --bg: #f7fbfe; --card-bg: #ffffff; --border: #daeef9;
+    --green: #27ae60; --radius: 16px;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; overflow-x: hidden; }
+
+  nav { position: sticky; top: 0; z-index: 100; background: rgba(247,251,254,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 5%; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .nav-logo { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1.4rem; color: var(--blue-dark); text-decoration: none; }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a { color: var(--text-sub); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color .2s; }
+  .nav-links a:hover { color: var(--blue); }
+  .nav-btn { background: var(--blue); color: white; border: none; padding: 8px 20px; border-radius: 100px; font-size: 0.85rem; font-weight: 700; cursor: pointer; text-decoration: none; transition: background .2s; font-family: 'Noto Sans JP', sans-serif; }
+  .nav-btn:hover { background: var(--blue-dark); }
+
+  .hero { padding: 80px 5% 60px; text-align: center; background: #eef7fd; }
+  .hero-badge { display: inline-block; background: var(--sky); color: var(--blue-dark); font-size: 0.8rem; font-weight: 700; padding: 5px 16px; border-radius: 100px; border: 1px solid var(--sky-mid); margin-bottom: 1.5rem; }
+  .hero h1 { font-family: 'Nunito', sans-serif; font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.2; margin-bottom: 1rem; }
+  .hero h1 em { font-style: normal; color: var(--blue); }
+  .hero p { font-size: 1.05rem; color: var(--text-sub); max-width: 520px; margin: 0 auto 2.5rem; }
+  .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 3rem; }
+  .btn-primary { background: var(--blue); color: white; padding: 14px 32px; border-radius: 100px; font-size: 1rem; font-weight: 700; text-decoration: none; transition: background .2s, transform .15s, box-shadow .15s; display: inline-flex; align-items: center; gap: 8px; font-family: 'Noto Sans JP', sans-serif; }
+  .btn-primary:hover { background: var(--blue-dark); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(58,159,216,0.3); }
+  .btn-secondary { background: white; color: var(--blue); padding: 14px 32px; border-radius: 100px; font-size: 1rem; font-weight: 700; text-decoration: none; border: 2px solid var(--blue); transition: background .2s, transform .15s; display: inline-flex; align-items: center; gap: 8px; font-family: 'Noto Sans JP', sans-serif; }
+  .btn-secondary:hover { background: var(--sky); transform: translateY(-2px); }
+  .hero-img { max-width: 900px; margin: 0 auto; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(58,159,216,0.15); }
+  .hero-img img { width: 100%; display: block; }
+
+  .new-badge { display: inline-block; background: #ff6b6b; color: white; font-size: 0.65rem; font-weight: 800; padding: 2px 7px; border-radius: 100px; margin-left: 8px; vertical-align: middle; }
+
+  .section { padding: 80px 5%; }
+  .section-title { text-align: center; font-family: 'Nunito', sans-serif; font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; margin-bottom: 0.6rem; }
+  .section-sub { text-align: center; color: var(--text-sub); margin-bottom: 3rem; font-size: 0.95rem; }
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; max-width: 1100px; margin: 0 auto; }
+  .feature-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px 24px; transition: transform .2s, box-shadow .2s; }
+  .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(58,159,216,0.1); }
+  .feature-card.new-feature { border-color: var(--sky-mid); background: linear-gradient(135deg, #f0f9ff, #ffffff); }
+  .feature-icon { font-size: 2rem; margin-bottom: 12px; display: block; }
+  .feature-card h3 { font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
+  .feature-card p { font-size: 0.88rem; color: var(--text-sub); line-height: 1.6; }
+
+  .screenshots { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto; }
+  .screenshot-card { border-radius: var(--radius); overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.1); background: white; transition: transform .2s, box-shadow .2s; }
+  .screenshot-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.15); }
+  .screenshot-card img { width: 100%; display: block; }
+  .screenshot-caption { padding: 12px 16px; font-size: 0.88rem; color: var(--text-sub); font-weight: 600; }
+
+  .idphoto-demo { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; max-width: 900px; margin: 0 auto; align-items: start; }
+  .idphoto-demo-card { border-radius: var(--radius); overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.1); background: white; }
+  .idphoto-demo-card img { width: 100%; display: block; }
+  .idphoto-demo-card .caption { padding: 10px 14px; font-size: 0.82rem; color: var(--text-sub); font-weight: 600; text-align: center; }
+
+  .whats-new { background: linear-gradient(135deg, #f0f7fd 0%, #fef9ee 100%); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px 32px; max-width: 760px; margin: 0 auto 3rem; }
+  .whats-new h3 { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--blue-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .whats-new ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .whats-new ul li { font-size: 0.9rem; color: var(--text-sub); display: flex; align-items: flex-start; gap: 8px; }
+  .whats-new ul li::before { content: "✓"; color: var(--green); font-weight: 700; flex-shrink: 0; }
+
+  .support-section { background: linear-gradient(135deg, #e8f5fe 0%, #fef9ee 100%); padding: 80px 5%; text-align: center; }
+  .support-card { max-width: 460px; margin: 0 auto; background: white; border-radius: var(--radius); border: 2px solid var(--sky-mid); padding: 40px 36px; box-shadow: 0 8px 30px rgba(58,159,216,0.1); }
+  .support-icon { font-size: 3rem; margin-bottom: 12px; }
+  .support-card h3 { font-family: 'Nunito', sans-serif; font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+  .support-card p { color: var(--text-sub); margin-bottom: 1.5rem; font-size: 0.95rem; }
+  .btn-support { background: var(--accent); color: white; padding: 14px 36px; border-radius: 100px; font-size: 1rem; font-weight: 700; text-decoration: none; transition: background .2s, transform .15s; display: inline-block; font-family: 'Noto Sans JP', sans-serif; }
+  .btn-support:hover { background: var(--accent-dark); transform: translateY(-2px); }
+  .free-note { margin-top: 1.2rem; font-size: 0.82rem; color: var(--green); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+  footer { background: var(--text); color: rgba(255,255,255,0.6); padding: 40px 5%; text-align: center; }
+  .footer-logo { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1.2rem; color: white; margin-bottom: 1rem; display: block; }
+  .footer-logo span { color: var(--accent); }
+  .footer-links { display: flex; gap: 2rem; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .footer-links a { color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.85rem; transition: color .2s; }
+  .footer-links a:hover { color: white; }
+  .footer-copy { font-size: 0.8rem; color: rgba(255,255,255,0.35); }
+
+  .fade-in { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+  .fade-in.visible { opacity: 1; transform: none; }
+
+  @media (max-width: 700px) {
+    .nav-links { display: none; }
+    .screenshots { grid-template-columns: 1fr; }
+    .idphoto-demo { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#">Snap<span>Swift</span></a>
+  <ul class="nav-links">
+    <li><a href="#features">機能</a></li>
+    <li><a href="#screenshots">スクリーンショット</a></li>
+    <li><a href="#changelog">更新履歴</a></li>
+    <li><a href="#support">応援する</a></li>
+    <li><a href="#privacy">プライバシー</a></li>
+    <li><a href="#contact">サポート</a></li>
+  </ul>
+  <a class="nav-btn" href="https://github.com/MtTakao599/SnapSwift/releases/latest">ダウンロード</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-badge">🪟 Windows 向け 画像ビューワ＋最適化ツール</div>
+  <h1>画像を見る、そのまま<em>最適化</em>する。</h1>
+  <p>軽量・高速・無料・広告なし。SnapSwift は、画像を閲覧しながらそのまま最適化できるシンプルなツールです。SNS やブログ用の画像作成も、これ一つで完結します。</p>
+  <div class="hero-btns">
+    <a class="btn-primary" href="https://github.com/MtTakao599/SnapSwift/releases/latest">🪟 無料ダウンロード（Windows）</a>
+    <a class="btn-secondary" href="#features">機能を見る</a>
+  </div>
+  <div class="hero-img">
+    <img src="https://raw.githubusercontent.com/MtTakao599/SnapSwift/master/ss_timeline.png" alt="SnapSwiftのタイムライン画面">
+  </div>
+</section>
+
+<section class="section" style="padding-bottom:0;">
+  <div style="max-width:700px;margin:0 auto;text-align:center;" class="fade-in">
+    <p style="font-size:1.05rem;color:var(--text-sub);line-height:1.9;">
+      SnapSwift は、画像ビューワとして写真を確認しながら、そのまま最適化・圧縮できるデスクトップアプリです。<br>
+      フォルダをドラッグ&ドロップするだけで、複数の画像を一括処理。<br>
+      SNS 投稿やブログ用の画像準備を、素早くシンプルに行えます。
+    </p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:2rem;">
+      <span style="background:var(--sky);color:var(--blue-dark);padding:6px 18px;border-radius:100px;font-size:0.85rem;font-weight:600;border:1px solid var(--sky-mid);">⚡ 軽量・高速</span>
+      <span style="background:var(--sky);color:var(--blue-dark);padding:6px 18px;border-radius:100px;font-size:0.85rem;font-weight:600;border:1px solid var(--sky-mid);">✅ 完全無料</span>
+      <span style="background:var(--sky);color:var(--blue-dark);padding:6px 18px;border-radius:100px;font-size:0.85rem;font-weight:600;border:1px solid var(--sky-mid);">🚫 広告なし</span>
+      <span style="background:var(--sky);color:var(--blue-dark);padding:6px 18px;border-radius:100px;font-size:0.85rem;font-weight:600;border:1px solid var(--sky-mid);">🖱️ ドラッグ&ドロップ</span>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <h2 class="section-title fade-in">充実の機能、すべて無料</h2>
+  <p class="section-sub fade-in">フォルダをドラッグ＆ドロップするだけで複数の画像を一括処理。<br>SNS 投稿やブログ用の画像準備を、素早くシンプルに行えます。</p>
+  <div class="features-grid">
+    <div class="feature-card fade-in"><span class="feature-icon">📅</span><h3>日付別タイムライン</h3><p>撮影日でまとめて整理。あの日の思い出をすぐに見つけられます。</p></div>
+    <div class="feature-card fade-in"><span class="feature-icon">📁</span><h3>フォルダ別アルバム</h3><p>フォルダ構成をそのままアルバムとして表示。フォルダごとにスライドショーも即起動。</p></div>
+    <div class="feature-card fade-in new-feature"><span class="feature-icon">❤️</span><h3>お気に入り <span class="new-badge">NEW</span></h3><p>ビューアの❤ボタンでワンタップ登録。専用タブで一覧表示・スライドショーも対応。</p></div>
+    <div class="feature-card fade-in new-feature"><span class="feature-icon">🖼️</span><h3>HEIC/AVIF/GIF/SVG対応 <span class="new-badge">NEW</span></h3><p>iPhoneのHEIC、次世代フォーマットAVIF、アニメGIF、SVGベクター画像にも対応。</p></div>
+    <div class="feature-card fade-in new-feature"><span class="feature-icon">🔒</span><h3>EXIF削除・編集 <span class="new-badge">NEW</span></h3><p>プライバシー保護のためEXIFを完全削除。撮影日時・作者・GPS情報の編集も可能。</p></div>
+    <div class="feature-card fade-in"><span class="feature-icon">🔍</span><h3>高速サムネイル＋キャッシュ</h3><p>大量の写真もサクサク表示。キャッシュで2回目以降はさらに速く。</p></div>
+    <div class="feature-card fade-in"><span class="feature-icon">🖼️</span><h3>フルスクリーンビューア</h3><p>ズームやスワイプ操作で、写真の細部まで確認できます。Enterキーで全画面表示。</p></div>
+    <div class="feature-card fade-in new-feature"><span class="feature-icon">🎬</span><h3>スライドショー <span class="new-badge">NEW</span></h3><p>ケン・バーンズエフェクト付きのシネマティックなスライドショー。前後移動・一時停止も自在。</p></div>
+    <div class="feature-card fade-in new-feature"><span class="feature-icon">🪪</span><h3>証明写真作成 <span class="new-badge">NEW</span></h3><p>履歴書・パスポート・運転免許など5種類に対応。AI背景除去・顔の傾き自動補正・美肌処理・L判印刷レイアウト生成まで一括対応。</p></div>
+    <div class="feature-card fade-in new-feature"><span class="feature-icon">🎨</span><h3>15種類のフィルター <span class="new-badge">NEW</span></h3><p>Clarendon・Lark・Juno・Valenciaなどインスタ系フィルターからモノクロ・セピア・ハイコントラストまで全15種類。</p></div>
+    <div class="feature-card fade-in"><span class="feature-icon">▶️</span><h3>動画再生</h3><p>独自プロトコルでローカル動画を遅延なくスムーズに再生します。</p></div>
+    <div class="feature-card fade-in"><span class="feature-icon">🔄</span><h3>一括フォーマット変換</h3><p>WebP・JPG・PNG・GIF・APNGに一括変換。HEIC/AVIFの変換にも対応。</p></div>
+    <div class="feature-card fade-in"><span class="feature-icon">⌨️</span><h3>キーボード操作</h3><p>←→で前後移動、↑・Backspaceで親フォルダへ、Enterで全画面。直感的に操作できます。</p></div>
+    <div class="feature-card fade-in"><span class="feature-icon">ℹ️</span><h3>EXIF情報表示</h3><p>カメラ機種・ISO・GPS情報などを詳しく確認できます。</p></div>
+    <div class="feature-card fade-in"><span class="feature-icon">🔍</span><h3>Googleレンズ連携</h3><p>表示中の画像をワンクリックでGoogleレンズに飛ばして検索。</p></div>
+    <div class="feature-card fade-in"><span class="feature-icon">💾</span><h3>ウィンドウ位置の記憶</h3><p>前回終了時のウィンドウ位置・サイズを自動で復元します。</p></div>
+    <div class="feature-card fade-in"><span class="feature-icon">🌙</span><h3>ダークテーマ対応</h3><p>目に優しいダークモードで、夜間も快適に閲覧できます。</p></div>
+  </div>
+</section>
+
+<section class="section" id="screenshots" style="background:#f0f7fd;">
+  <h2 class="section-title fade-in">実際の画面</h2>
+  <p class="section-sub fade-in">本物のスクリーンショットでアプリの使い心地をご確認ください。</p>
+  <div class="screenshots">
+    <div class="screenshot-card fade-in">
+      <img src="https://raw.githubusercontent.com/MtTakao599/SnapSwift/master/ss_timeline.png" alt="タイムライン画面">
+      <div class="screenshot-caption">📅 日付別タイムライン — 撮影日でまとめて整理</div>
+    </div>
+    <div class="screenshot-card fade-in">
+      <img src="https://raw.githubusercontent.com/MtTakao599/SnapSwift/master/ss_viewer.png" alt="1枚表示ビューア">
+      <div class="screenshot-caption">🖼️ フルスクリーンビューア — 5331枚もサクサク閲覧</div>
+    </div>
+    <div class="screenshot-card fade-in">
+      <img src="https://raw.githubusercontent.com/MtTakao599/SnapSwift/master/ss_convert.png" alt="変換画面">
+      <div class="screenshot-caption">🔄 一括変換 — フォーマット・スレッド数を自由に設定</div>
+    </div>
+    <div class="screenshot-card fade-in" style="grid-column: 1 / -1;">
+      <img src="https://raw.githubusercontent.com/MtTakao599/SnapSwift/master/ss_idphoto.png" alt="証明写真作成画面">
+      <div class="screenshot-caption">🪪 証明写真作成 — AI背景除去・傾き補正・美肌・L判レイアウトまで一括対応</div>
+    </div>
+  </div>
+
+  <div style="margin-top:56px;">
+    <h3 class="section-title fade-in" style="font-size:1.4rem;margin-bottom:0.5rem;">証明写真の仕上がり例</h3>
+    <p class="section-sub fade-in">AI背景除去 → 水色背景に変更 → L判レイアウト生成まで、アプリ内で完結</p>
+    <div class="idphoto-demo">
+      <div class="idphoto-demo-card fade-in">
+        <img src="https://raw.githubusercontent.com/MtTakao599/SnapSwift/master/ss_idphoto_result.png" alt="証明写真の仕上がり">
+        <div class="caption">✅ 証明写真（35×45mm）</div>
+      </div>
+      <div class="idphoto-demo-card fade-in">
+        <img src="https://raw.githubusercontent.com/MtTakao599/SnapSwift/master/ss_layout.png" alt="L判レイアウト">
+        <div class="caption">🖨️ L判印刷レイアウト（2×3枚）</div>
+      </div>
+      <div class="idphoto-demo-card fade-in" style="background:#1a1a2e;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:32px;gap:14px;min-height:220px;">
+        <div style="font-size:2.5rem;">🪪</div>
+        <div style="color:white;font-weight:700;font-size:1rem;text-align:center;">5種類のサイズに対応</div>
+        <div style="color:rgba(255,255,255,0.65);font-size:0.85rem;text-align:center;line-height:2;">
+          履歴書・資格試験用 (30×40mm)<br>
+          パスポート・マイナンバー (35×45mm)<br>
+          運転免許・英検 (24×30mm)<br>
+          パスポート（US）(51×51mm)<br>
+          ビザ（中国）(33×48mm)
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="changelog">
+  <h2 class="section-title fade-in">更新履歴</h2>
+  <p class="section-sub fade-in">最新バージョンの変更内容をご確認ください。</p>
+
+  <div class="whats-new fade-in">
+    <h3>🆕 v0.4.0 <span style="font-size:0.8rem;color:var(--text-sub);font-weight:400;">2026年5月</span></h3>
+    <ul>
+      <li>❤️ お気に入り機能を追加（専用タブ・ビューアからワンタップ登録・スライドショー対応）</li>
+      <li>🖼️ HEIC / HEIF（iPhone写真）のサムネイル表示・変換に対応</li>
+      <li>🖼️ AVIF（アニメーション含む）のサムネイル表示・変換に対応</li>
+      <li>🎞️ アニメGIFのサムネイル表示・変換に対応</li>
+      <li>🔷 SVGベクター画像のサムネイル表示に対応</li>
+      <li>🔒 EXIF完全削除機能を追加（プライバシー保護）</li>
+      <li>✏️ EXIF編集機能を追加（撮影日時・説明・作者・著作権・GPS削除）</li>
+      <li>🔄 変換タブでHEIC/AVIF → JPG/PNG/WebP変換に対応</li>
+      <li>🔄 アニメAVIF → アニメGIF変換に対応</li>
+      <li>サムネイルをJPEG形式に変更（安定性向上）</li>
+    </ul>
+  </div>
+
+  <div class="whats-new fade-in" style="opacity:0.8;">
+    <h3>v0.3.0 <span style="font-size:0.8rem;color:var(--text-sub);font-weight:400;">2026年5月</span></h3>
+    <ul>
+      <li>証明写真機能を追加（履歴書・パスポート・運転免許・USパスポート・中国ビザ対応）</li>
+      <li>AI背景除去（MediaPipe）・顔の傾き自動補正（face-api.js）を搭載</li>
+      <li>美肌処理・上下位置調整・L判印刷レイアウト自動生成</li>
+      <li>スライドショーにケン・バーンズエフェクトを追加</li>
+      <li>スライドショーの前後移動・一時停止UIを改善</li>
+      <li>フィルターを15種類に拡充（Clarendon・Lark・Junoなど）</li>
+      <li>ボトムナビをタイムライン・フォルダ・変換・設定の4つに整理</li>
+      <li>フォルダ一覧の各フォルダに▶スライドショーボタンを追加</li>
+      <li>タイトルバーに「☕ 開発者を応援する」ボタンを追加</li>
+      <li>起動時のウィンドウ位置・サイズを記憶・復元</li>
+      <li>シングルインスタンス化（起動済み時はファイルを即時表示）</li>
+    </ul>
+  </div>
+
+  <div class="whats-new fade-in" style="opacity:0.6;">
+    <h3>v0.2.0 <span style="font-size:0.8rem;color:var(--text-sub);font-weight:400;">2026年5月</span></h3>
+    <ul>
+      <li>キーボードナビゲーション強化（↑・Backspaceで親フォルダ移動、Enterで全画面）</li>
+      <li>親フォルダに画像がない場合のサブフォルダ一覧モーダル表示</li>
+      <li>日本語・スペース含むパスのサムネイル表示バグを修正</li>
+      <li>サムネイル生成をキャッシュ方式に変更（高速化）</li>
+      <li>画像表示をasset://プロトコルによる直接読み込みに変更（高速化）</li>
+      <li>スクロール位置の復帰精度を改善</li>
+    </ul>
+  </div>
+
+  <div class="whats-new fade-in" style="opacity:0.45;">
+    <h3>v0.1.0 <span style="font-size:0.8rem;color:var(--text-sub);font-weight:400;">2026年5月</span></h3>
+    <ul>
+      <li>初回リリース</li>
+      <li>日付別タイムライン・フォルダ別アルバム</li>
+      <li>画像ビューア・編集・スライドショー</li>
+      <li>一括フォーマット変換（WebP・JPG・PNG）</li>
+      <li>EXIF情報表示・Googleレンズ連携</li>
+    </ul>
+  </div>
+</section>
+
+<section class="support-section" id="support">
+  <h2 class="section-title fade-in">SnapSwift を応援する</h2>
+  <p class="section-sub fade-in">アプリは完全無料です。気に入ってくださった方は、ぜひ開発を応援してください。</p>
+  <div class="support-card fade-in">
+    <div class="support-icon">☕</div>
+    <h3>開発を応援する</h3>
+    <p>いただいたご支援は、アプリのさらなる改善・新機能開発に使わせていただきます。</p>
+    <a href="https://ko-fi.com/snapswift" target="_blank" class="btn-support">☕ Buy me a Coffee</a>
+    <div class="free-note">✓ 応援しなくても、すべての機能を無料でご利用いただけます</div>
+  </div>
+</section>
+
+<section class="section" id="privacy" style="max-width:760px;margin:0 auto;">
+  <h2 class="section-title fade-in">プライバシーポリシー</h2>
+  <div class="fade-in" style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:36px;font-size:0.9rem;color:var(--text-sub);line-height:1.9;">
+    <p style="margin-bottom:1rem;"><strong style="color:var(--text);">収集する情報</strong><br>SnapSwift はお客様の個人情報を収集しません。写真データはすべてお客様のデバイス内のみで処理されます。</p>
+    <p style="margin-bottom:1rem;"><strong style="color:var(--text);">外部サービスとの通信</strong><br>「Googleレンズで検索」機能を使用する場合、選択した画像がGoogleのサービスに送信されます。証明写真の顔検出・背景除去はすべてデバイス内で処理され、外部に送信されません。それ以外に外部への通信は行いません。</p>
+    <p style="margin-bottom:1rem;"><strong style="color:var(--text);">広告・解析</strong><br>SnapSwift は広告を表示しません。また、利用状況の解析ツールは使用していません。</p>
+    <p><strong style="color:var(--text);">お問い合わせ</strong><br>プライバシーに関するご質問は、下記サポートまでお気軽にどうぞ。</p>
+  </div>
+</section>
+
+<section class="section" id="contact" style="text-align:center;padding-top:0;">
+  <h2 class="section-title fade-in">サポート・お問い合わせ</h2>
+  <p class="section-sub fade-in">バグ報告・ご要望・ご質問など、お気軽にどうぞ。</p>
+  <div class="fade-in">
+    <a href="mailto:snapswift.app@gmail.com" class="btn-primary" style="margin:0 auto;display:inline-flex;">📧 メールで問い合わせる</a>
+  </div>
+</section>
+
+<footer>
+  <span class="footer-logo">Snap<span>Swift</span></span>
+  <div class="footer-links">
+    <a href="#features">機能</a>
+    <a href="#screenshots">スクリーンショット</a>
+    <a href="#changelog">更新履歴</a>
+    <a href="#support">応援する</a>
+    <a href="#privacy">プライバシーポリシー</a>
+    <a href="#contact">サポート</a>
+  </div>
+  <p class="footer-copy">© 2026 SnapSwift. All rights reserved.</p>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
