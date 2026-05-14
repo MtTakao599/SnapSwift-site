@@ -22,8 +22,8 @@
   .nav-links { display: flex; gap: 2rem; list-style: none; }
   .nav-links a { color: var(--text-sub); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color .2s; }
   .nav-links a:hover { color: var(--blue); }
-  .nav-btn { background: var(--blue); color: white; border: none; padding: 8px 20px; border-radius: 100px; font-size: 0.85rem; font-weight: 700; cursor: pointer; text-decoration: none; transition: background .2s; font-family: 'Noto Sans JP', sans-serif; }
-  .nav-btn:hover { background: var(--blue-dark); }
+  .nav-btn { background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 100px; font-size: 0.85rem; font-weight: 700; cursor: pointer; text-decoration: none; transition: background .2s; font-family: 'Noto Sans JP', sans-serif; }
+  .nav-btn:hover { background: var(--accent-dark); }
 
   .hero { padding: 80px 5% 60px; text-align: center; background: #eef7fd; }
   .hero-badge { display: inline-block; background: var(--sky); color: var(--blue-dark); font-size: 0.8rem; font-weight: 700; padding: 5px 16px; border-radius: 100px; border: 1px solid var(--sky-mid); margin-bottom: 1.5rem; }
@@ -107,7 +107,7 @@
     <li><a href="#privacy">プライバシー</a></li>
     <li><a href="#contact">サポート</a></li>
   </ul>
-  <a class="nav-btn" href="https://github.com/MtTakao599/SnapSwift-site/releases/latest">ダウンロード</a>
+  <a class="nav-btn" href="#support">☕ 開発者を応援する</a>
 </nav>
 
 <section class="hero">
@@ -144,6 +144,9 @@
   <h2 class="section-title fade-in">充実の機能、すべて無料</h2>
   <p class="section-sub fade-in">フォルダをドラッグ＆ドロップするだけで複数の画像を一括処理。<br>SNS 投稿やブログ用の画像準備を、素早くシンプルに行えます。</p>
   <div class="features-grid">
+    <div class="feature-card fade-in new-feature"><span class="feature-icon">🔍</span><h3>似た画像検索 <span class="new-badge">NEW</span></h3><p>dHash・pHash 3段階検索で連写・リサイズ違いを自動グループ化。3000枚を約0.1秒で処理。</p></div>
+    <div class="feature-card fade-in new-feature"><span class="feature-icon">🗺️</span><h3>GPSマッピング <span class="new-badge">NEW</span></h3><p>Googleタイムライン・GPXファイルを読み込み、写真をマップ上にピン表示。KML出力にも対応。</p></div>
+    <div class="feature-card fade-in new-feature"><span class="feature-icon">📄</span><h3>PDFプレビュー <span class="new-badge">NEW</span></h3><p>PDFを全ページ縦スクロールで表示。テキストコピーにも対応。</p></div>
     <div class="feature-card fade-in"><span class="feature-icon">📅</span><h3>日付別タイムライン</h3><p>撮影日でまとめて整理。あの日の思い出をすぐに見つけられます。</p></div>
     <div class="feature-card fade-in"><span class="feature-icon">📁</span><h3>フォルダ別アルバム</h3><p>フォルダ構成をそのままアルバムとして表示。フォルダごとにスライドショーも即起動。</p></div>
     <div class="feature-card fade-in new-feature"><span class="feature-icon">❤️</span><h3>お気に入り <span class="new-badge">NEW</span></h3><p>ビューアの❤ボタンでワンタップ登録。専用タブで一覧表示・スライドショーも対応。</p></div>
@@ -218,12 +221,26 @@
   <p class="section-sub fade-in">最新バージョンの変更内容をご確認ください。</p>
 
   <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:2rem;" class="fade-in">
-    <span style="background:#1a1a2e;color:#5B9BD5;padding:6px 18px;border-radius:100px;font-size:0.85rem;font-weight:600;border:1px solid #2a3a4a;">🪟 Windows v0.4.0</span>
+    <span style="background:#1a1a2e;color:#5B9BD5;padding:6px 18px;border-radius:100px;font-size:0.85rem;font-weight:600;border:1px solid #2a3a4a;">🪟 Windows v1.2</span>
     <span style="background:#1a2e1a;color:#27ae60;padding:6px 18px;border-radius:100px;font-size:0.85rem;font-weight:600;border:1px solid #2a4a2a;">🤖 Android v1.1</span>
   </div>
 
   <div class="whats-new fade-in">
-    <h3>🆕 Windows v0.4.0 / Android v1.1 <span style="font-size:0.8rem;color:var(--text-sub);font-weight:400;">2026年5月</span></h3>
+    <h3>🆕 Windows v1.2 <span style="font-size:0.8rem;color:var(--text-sub);font-weight:400;">2026年5月</span></h3>
+    <ul>
+      <li>🔍 似た画像検索を追加（dHash・pHash 3段階検索）</li>
+      <li>⚡ 似た画像検索を大幅高速化（40秒 → 約0.1秒、3000枚対応）</li>
+      <li>🗑️ 推奨画像を自動選択・不要画像をゴミ箱に移動</li>
+      <li>📚 スタック表示（グループを折りたたんで一覧管理）</li>
+      <li>🗺️ GPSマッピング機能（Googleタイムライン・GPXファイル対応、KML出力）</li>
+      <li>📄 PDFプレビュー（全ページ表示・テキストコピー対応）</li>
+      <li>🚀 高速削除モードを追加（←→ + Delete + Space + Esc）</li>
+      <li>🤖 Android v1.2 は近日公開予定</li>
+    </ul>
+  </div>
+
+  <div class="whats-new fade-in" style="opacity:0.8;">
+    <h3>Windows v0.4.0 / Android v1.1 <span style="font-size:0.8rem;color:var(--text-sub);font-weight:400;">2026年5月</span></h3>
     <ul>
       <li>❤️ お気に入り機能を追加（専用タブ・ビューアからワンタップ登録・スライドショー対応）</li>
       <li>🖼️ HEIC / HEIF（iPhone写真）のサムネイル表示・変換に対応</li>
@@ -241,7 +258,7 @@
     </ul>
   </div>
 
-  <div class="whats-new fade-in" style="opacity:0.8;">
+  <div class="whats-new fade-in" style="opacity:0.6;">
     <h3>v0.3.0 <span style="font-size:0.8rem;color:var(--text-sub);font-weight:400;">2026年5月</span></h3>
     <ul>
       <li>証明写真機能を追加（履歴書・パスポート・運転免許・USパスポート・中国ビザ対応）</li>
@@ -258,7 +275,7 @@
     </ul>
   </div>
 
-  <div class="whats-new fade-in" style="opacity:0.6;">
+  <div class="whats-new fade-in" style="opacity:0.45;">
     <h3>v0.2.0 <span style="font-size:0.8rem;color:var(--text-sub);font-weight:400;">2026年5月</span></h3>
     <ul>
       <li>キーボードナビゲーション強化（↑・Backspaceで親フォルダ移動、Enterで全画面）</li>
@@ -270,7 +287,7 @@
     </ul>
   </div>
 
-  <div class="whats-new fade-in" style="opacity:0.45;">
+  <div class="whats-new fade-in" style="opacity:0.35;">
     <h3>v0.1.0 <span style="font-size:0.8rem;color:var(--text-sub);font-weight:400;">2026年5月</span></h3>
     <ul>
       <li>初回リリース</li>
