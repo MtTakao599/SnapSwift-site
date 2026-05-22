@@ -233,7 +233,7 @@
   <main>
     <section class="hero">
       <div class="wrap">
-        <div class="eyebrow">Windows v1.3 公開中 / Android版あり / Linux版開発中</div>
+        <div class="eyebrow">Windows v1.3 公開中 / Android版あり / Linux AppImage Preview 公開</div>
         <h1>画像を見る。<br><span class="accent">すばやく整理</span>する。</h1>
         <p class="lead">
           SnapSwift は、軽量・高速・広告なしの画像ビューア＆整理ツールです。
@@ -250,11 +250,12 @@
 
         <div class="cta">
           <a class="btn btn-primary" href="https://github.com/MtTakao599/SnapSwift-site/releases/latest" target="_blank" rel="noopener">Windows版をダウンロード</a>
+          <a class="btn btn-secondary" href="https://github.com/MtTakao599/SnapSwift-site/releases/latest" target="_blank" rel="noopener">Linux AppImage Preview</a>
           <a class="btn btn-secondary" href="https://play.google.com/store/apps/details?id=com.snapswift.android" target="_blank" rel="noopener">Google Play</a>
           <a class="btn btn-ghost" href="#screenshots">スクリーンショットを見る ↓</a>
         </div>
 
-        <p class="platforms">Windows版がメインです。Android版は外出先での写真整理補助に、Linux版は現在デスクトップ向けに開発中です。</p>
+        <p class="platforms">Windows版がメインです。Android版は外出先での写真整理補助に、Linux版は AppImage Preview を公開中です。</p>
 
         <div class="hero-shot">
           <img src="assets/screenshots/ss_timeline_v13.png" alt="SnapSwift タイムライン画面">
@@ -382,9 +383,53 @@
             <p>外出先での写真確認や整理補助に。Google Play から無料で利用できます。</p>
           </article>
           <article class="version-card">
-            <h3>Linux版 開発中</h3>
-            <p>CachyOS / Wayland 環境を中心に検証中。Windows版と同じ体験を目指して調整しています。</p>
+            <h3>Linux AppImage Preview</h3>
+            <p>CachyOS / Arch Linux 環境を中心に動作確認済み。動画再生・PDF・タイムライン・類似画像検索など主要機能に対応しています。</p>
           </article>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="linux-preview">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>Linux AppImage Preview</h2>
+            <p class="section-desc">
+              SnapSwift の Linux版 AppImage Preview を公開しました。
+              現在は CachyOS / Arch Linux 環境を中心に検証中です。
+            </p>
+          </div>
+        </div>
+
+        <div class="privacy">
+          <article class="privacy-card">
+            <h3>対応機能</h3>
+            <p>タイムライン表示、動画再生、PDFプレビュー、類似画像検索、GPSマップ、証明写真作成に対応しています。</p>
+          </article>
+
+          <article class="privacy-card">
+            <h3>動画再生</h3>
+            <p>WebKitGTK + GStreamer ベースの Linux 専用動画再生経路を実装。faststart remux と custom controls に対応しています。</p>
+          </article>
+
+          <article class="privacy-card">
+            <h3>必要パッケージ</h3>
+            <p>Linux動画再生には GStreamer plugins が必要です。</p>
+          </article>
+        </div>
+
+        <div class="history" style="margin-top:24px;">
+          <div class="history-item">
+            <h3>Arch / CachyOS</h3>
+            <pre style="white-space:pre-wrap;color:#d1d5db;">sudo pacman -S gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly gst-libav ffmpeg xdg-utils</pre>
+          </div>
+
+          <div class="history-item">
+            <h3>Ubuntu / Debian</h3>
+            <pre style="white-space:pre-wrap;color:#d1d5db;">sudo apt install ffmpeg xdg-utils gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav</pre>
+          </div>
         </div>
       </div>
     </section>
@@ -407,6 +452,18 @@
               <li>ボタン色をCSS変数で統一</li>
               <li>証明写真の操作をステップ表示で分かりやすく改善</li>
               <li>サムネイルのちらつき・キャッシュ更新まわりを改善</li>
+            </ul>
+          </div>
+          <div class="history-item">
+            <h3>Linux AppImage Preview</h3>
+            <ul>
+              <li>Linux向け AppImage Preview を公開</li>
+              <li>WebKitGTK 動画再生対応</li>
+              <li>custom video controls を実装</li>
+              <li>faststart remux に対応</li>
+              <li>GStreamer plugin path 自動補完</li>
+              <li>xdg-open / 外部アプリ連携対応</li>
+              <li>Wayland 環境のウィンドウ復元改善</li>
             </ul>
           </div>
           <div class="history-item">
