@@ -1,515 +1,363 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SnapSwift - 軽量・高速な画像ビューア＆整理ツール</title>
-  <meta name="description" content="SnapSwift は、軽量・高速・広告なしの画像ビューア＆整理ツールです。タイムライン表示、高速整理、類似画像検索、動画再生、PDF、GPSマップ、証明写真作成に対応。" />
-  <meta property="og:title" content="SnapSwift" />
-  <meta property="og:description" content="画像を見る。すばやく整理する。軽量・高速・広告なしの画像ビューア＆整理ツール。" />
-  <meta property="og:image" content="assets/screenshots/ss_timeline_v13.png" />
+  <meta name="description" content="SnapSwift は、Windows / Linux / Android に対応した軽量・高速・広告なしの画像ビューア＆整理ツールです。大量写真整理、HEIC/HEIF、動画、PDF、GPSマップ、証明写真作成に対応。" />
+  <meta property="og:title" content="SnapSwift - 軽量・高速な画像ビューア＆整理ツール" />
+  <meta property="og:description" content="Windows / Linux / Android 対応。軽量・高速・広告なし。大量写真整理、変換、動画、PDF、GPSマップ、証明写真作成まで。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="./images/timeline.png" />
+  <meta name="theme-color" content="#2563eb" />
   <style>
     :root {
-      --bg: #050607;
-      --panel: #0d1117;
-      --panel-2: #111827;
-      --text: #f5f7fb;
-      --muted: #9ca3af;
-      --subtle: #6b7280;
-      --line: rgba(255,255,255,.10);
-      --accent: #5B9BD5;
-      --accent-2: #7db7f0;
-      --good: #34d399;
-      --warn: #f59e0b;
-      --danger: #f87171;
+      --bg: #f6f8fc;
+      --surface: #ffffff;
+      --surface-soft: #eef4ff;
+      --text: #152033;
+      --muted: #5f6f86;
+      --line: #dbe4f0;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --accent: #06b6d4;
+      --good: #16a34a;
+      --warning: #f59e0b;
+      --shadow: 0 20px 60px rgba(15, 23, 42, 0.10);
       --radius: 22px;
-      --shadow: 0 24px 80px rgba(0,0,0,.38);
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
       margin: 0;
-      background:
-        radial-gradient(circle at 20% 0%, rgba(91,155,213,.16), transparent 34rem),
-        radial-gradient(circle at 85% 10%, rgba(52,211,153,.08), transparent 32rem),
-        var(--bg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
+      background: radial-gradient(circle at top left, #dbeafe 0, transparent 32rem), var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
-      line-height: 1.7;
+      line-height: 1.75;
     }
-    a { color: inherit; }
-    .wrap { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    .container { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
     header {
       position: sticky;
       top: 0;
-      z-index: 20;
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      background: rgba(5,6,7,.72);
-      border-bottom: 1px solid var(--line);
+      z-index: 10;
+      backdrop-filter: blur(14px);
+      background: rgba(246, 248, 252, 0.82);
+      border-bottom: 1px solid rgba(219, 228, 240, 0.8);
     }
     .nav {
-      height: 68px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 18px;
+      gap: 16px;
+      padding: 14px 0;
     }
-    .brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.02em; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.2rem; }
     .brand-mark {
-      width: 34px; height: 34px; border-radius: 10px;
-      display:grid; place-items:center;
-      background: linear-gradient(135deg, var(--accent), #1e3a8a);
-      box-shadow: 0 10px 30px rgba(91,155,213,.28);
+      width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff;
+      box-shadow: 0 10px 28px rgba(37, 99, 235, .25);
     }
-    .nav-links { display:flex; align-items:center; gap:20px; color:var(--muted); font-size:14px; }
-    .nav-links a { text-decoration:none; }
-    .nav-links a:hover { color:var(--text); }
-    .support { padding:8px 12px; border:1px solid var(--line); border-radius:999px; }
-    .hero { padding: 74px 0 54px; }
-    .hero-grid { display:grid; grid-template-columns: 1fr; gap:32px; }
-    .eyebrow {
-      display:inline-flex; align-items:center; gap:8px;
-      padding: 8px 12px;
-      color: #cfe6ff;
-      border: 1px solid rgba(91,155,213,.35);
-      background: rgba(91,155,213,.10);
-      border-radius: 999px;
-      font-weight:700;
-      font-size:13px;
-      margin-bottom: 22px;
-    }
-    h1 {
-      font-size: clamp(42px, 7vw, 86px);
-      line-height: 1.02;
-      letter-spacing: -.05em;
-      margin: 0;
-    }
-    h1 .accent { color: var(--accent-2); }
-    .lead {
-      margin: 24px 0 0;
-      max-width: 850px;
-      color: #d1d5db;
-      font-size: clamp(17px, 2vw, 22px);
-    }
-    .badges { display:flex; flex-wrap:wrap; gap:12px; margin:26px 0 0; }
+    .nav-links { display: flex; align-items: center; gap: 18px; color: var(--muted); font-weight: 650; font-size: .94rem; }
+    .nav-links a:hover { color: var(--primary); }
+    .support-link { color: #a16207 !important; }
+    .hero { padding: 76px 0 48px; }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 42px; align-items: center; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
     .badge {
-      border:1px solid var(--line);
-      background: rgba(17,24,39,.72);
-      padding: 10px 14px;
-      border-radius: 999px;
-      font-weight:700;
-      color:#e5e7eb;
-      font-size: 14px;
+      display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border: 1px solid var(--line);
+      border-radius: 999px; background: rgba(255,255,255,.75); color: var(--muted); font-weight: 700; font-size: .9rem;
     }
-    .cta { display:flex; flex-wrap:wrap; gap:14px; margin-top:32px; align-items:center; }
+    h1 { font-size: clamp(2.45rem, 6vw, 5rem); line-height: 1.04; letter-spacing: -0.055em; margin: 0 0 22px; }
+    .hero p { font-size: 1.15rem; color: var(--muted); margin: 0 0 28px; }
+    .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0 18px; }
     .btn {
-      display:inline-flex; align-items:center; justify-content:center; gap:8px;
-      min-height: 52px;
-      padding: 0 22px;
-      text-decoration:none;
-      border-radius: 14px;
-      font-weight: 800;
-      border: 1px solid transparent;
-      transition: transform .16s ease, background .16s ease, border-color .16s ease;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 12px 18px;
+      border-radius: 14px; font-weight: 800; border: 1px solid transparent; transition: .16s ease;
     }
-    .btn:hover { transform: translateY(-1px); }
-    .btn-primary { background: linear-gradient(135deg, #2f80ed, #1d4ed8); color:white; box-shadow: 0 18px 48px rgba(37,99,235,.25); }
-    .btn-secondary { background: rgba(17,24,39,.84); color:#f3f4f6; border-color:var(--line); }
-    .btn-ghost { color: var(--muted); }
-    .platforms { margin-top:18px; color:var(--muted); font-size:14px; }
-    .hero-shot {
-      margin-top: 44px;
-      overflow:hidden;
-      border: 1px solid rgba(255,255,255,.14);
-      border-radius: 28px;
-      background: #0a0a0a;
-      box-shadow: var(--shadow);
+    .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 14px 32px rgba(37,99,235,.24); }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-secondary { background: #fff; color: var(--text); border-color: var(--line); }
+    .btn-secondary:hover { border-color: #b8c5d8; transform: translateY(-1px); }
+    .hero-note { font-size: .94rem !important; color: var(--muted); }
+    .hero-card {
+      background: rgba(255,255,255,.78); border: 1px solid rgba(219,228,240,.9); border-radius: 30px; padding: 18px; box-shadow: var(--shadow);
     }
-    .hero-shot img { width:100%; display:block; }
-    section { padding: 74px 0; }
-    .section-head { display:flex; justify-content:space-between; align-items:end; gap:24px; margin-bottom:28px; }
-    h2 { margin:0; font-size: clamp(30px, 4vw, 48px); letter-spacing:-.035em; line-height:1.12; }
-    .section-desc { margin:10px 0 0; color:var(--muted); max-width:760px; }
-    .feature-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; }
-    .feature {
-      background: linear-gradient(180deg, rgba(17,24,39,.92), rgba(7,10,15,.92));
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 22px;
-      min-height: 178px;
+    .hero-shot { border-radius: 22px; overflow: hidden; background: #dbeafe; border: 1px solid var(--line); }
+    .hero-shot img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+    .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+    .stat { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 12px; }
+    .stat strong { display: block; font-size: 1.08rem; }
+    .stat span { display: block; font-size: .82rem; color: var(--muted); }
+    section { padding: 56px 0; }
+    .section-title { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+    .section-title h2 { font-size: clamp(1.8rem, 3vw, 2.7rem); letter-spacing: -0.04em; margin: 0; }
+    .section-title p { max-width: 620px; margin: 0; color: var(--muted); }
+    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feature-card {
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; box-shadow: 0 10px 28px rgba(15,23,42,.04);
     }
-    .feature .icon { font-size:26px; margin-bottom:12px; }
-    .feature h3 { margin:0 0 8px; font-size:17px; }
-    .feature p { margin:0; color:var(--muted); font-size:14px; }
-    .screens { display:grid; grid-template-columns: repeat(2, 1fr); gap:22px; }
-    .screen-card {
-      background: rgba(13,17,23,.86);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      overflow:hidden;
-      box-shadow: 0 16px 50px rgba(0,0,0,.22);
+    .feature-card .icon { font-size: 1.7rem; margin-bottom: 10px; }
+    .feature-card h3 { margin: 0 0 8px; font-size: 1.12rem; }
+    .feature-card p { margin: 0; color: var(--muted); font-size: .96rem; }
+    .screens { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .screen-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: 0 14px 34px rgba(15,23,42,.06); }
+    .screen-card img { aspect-ratio: 16 / 9; object-fit: cover; background: #e5edf8; width: 100%; }
+    .screen-body { padding: 18px; }
+    .screen-body h3 { margin: 0 0 6px; }
+    .screen-body p { margin: 0; color: var(--muted); }
+    .platform-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .platform-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
+    .platform-card h3 { margin: 0 0 10px; }
+    .platform-card p { margin: 0 0 14px; color: var(--muted); }
+    .pill-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill { font-size: .82rem; font-weight: 750; color: #1f3f67; background: var(--surface-soft); border: 1px solid #cfe0f6; padding: 5px 9px; border-radius: 999px; }
+    .linux-note, .privacy-box, .pdf-note {
+      background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; box-shadow: 0 10px 28px rgba(15,23,42,.04);
     }
-    .screen-card.large { grid-column: 1 / -1; }
-    .screen-card img { display:block; width:100%; background:#050505; }
-    .screen-body { padding: 20px 22px 24px; }
-    .label {
-      display:inline-flex;
-      color: var(--accent-2);
-      font-weight:800;
-      font-size:12px;
-      letter-spacing:.14em;
-      margin-bottom: 8px;
-    }
-    .screen-body h3 { margin:0 0 8px; font-size:22px; }
-    .screen-body p { margin:0; color: var(--muted); }
-    .versions {
-      display:grid;
-      grid-template-columns: 1.25fr .9fr .9fr;
-      gap:18px;
-    }
-    .version-card {
-      border:1px solid var(--line);
-      background: rgba(17,24,39,.68);
-      border-radius: 18px;
-      padding:24px;
-    }
-    .version-card h3 { margin:0 0 10px; }
-    .version-card p { margin:0; color: var(--muted); }
-    .history {
-      border:1px solid var(--line);
-      background: rgba(13,17,23,.86);
-      border-radius: var(--radius);
-      overflow:hidden;
-    }
-    .history-item { padding: 24px; border-bottom:1px solid var(--line); }
-    .history-item:last-child { border-bottom:0; }
-    .history-item h3 { margin:0 0 12px; }
-    .history-item ul { margin:0; padding-left: 1.2em; color:#d1d5db; }
-    .privacy {
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap:18px;
-    }
-    .privacy-card {
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:22px;
-      background: rgba(17,24,39,.58);
-    }
-    footer { border-top:1px solid var(--line); padding:42px 0; color:var(--muted); }
-    .footer-grid { display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; }
-    .footer-links { display:flex; gap:18px; flex-wrap:wrap; }
-    .footer-links a { color:var(--muted); text-decoration:none; }
-    @media (max-width: 920px) {
-      .feature-grid { grid-template-columns: repeat(2, 1fr); }
+    .linux-note h3, .privacy-box h3, .pdf-note h3 { margin-top: 0; }
+    .code-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+    pre { overflow: auto; margin: 8px 0 0; padding: 12px; border-radius: 14px; background: #0f172a; color: #dbeafe; font-size: .86rem; line-height: 1.5; }
+    .timeline { display: grid; gap: 14px; }
+    .release { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
+    .release h3 { margin: 0 0 10px; }
+    .release ul { margin: 0; padding-left: 1.2rem; color: var(--muted); }
+    .privacy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    footer { padding: 38px 0; border-top: 1px solid var(--line); color: var(--muted); }
+    .footer-inner { display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
+    .footer-links { display: flex; gap: 16px; flex-wrap: wrap; }
+    .small { color: var(--muted); font-size: .92rem; }
+    @media (max-width: 900px) {
+      .hero-grid, .feature-grid, .platform-grid, .code-grid, .privacy-grid { grid-template-columns: 1fr; }
       .screens { grid-template-columns: 1fr; }
-      .versions, .privacy { grid-template-columns: 1fr; }
-      .nav-links { display:none; }
-    }
-    @media (max-width: 560px) {
-      .wrap { width: min(100% - 24px, 1180px); }
-      .hero { padding-top: 46px; }
-      .feature-grid { grid-template-columns: 1fr; }
-      .cta .btn { width:100%; }
+      .section-title { display: block; }
+      .nav-links { display: none; }
+      .hero { padding-top: 48px; }
+      .hero-stats { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
   <header>
-    <div class="wrap nav">
-      <div class="brand"><span class="brand-mark">⚡</span><span>SnapSwift</span></div>
-      <nav class="nav-links">
+    <div class="container nav">
+      <a class="brand" href="#top" aria-label="SnapSwift home"><span class="brand-mark">⚡</span><span>SnapSwift</span></a>
+      <nav class="nav-links" aria-label="Main navigation">
         <a href="#features">機能</a>
         <a href="#screenshots">スクリーンショット</a>
-        <a href="#versions">対応版</a>
+        <a href="#platforms">対応版</a>
+        <a href="#linux">Linux</a>
         <a href="#history">更新履歴</a>
         <a href="#privacy">プライバシー</a>
-        <a class="support" href="https://ko-fi.com/snapswift" target="_blank" rel="noopener">☕ 応援する</a>
+        <a class="support-link" href="https://ko-fi.com/snapswift" target="_blank" rel="noopener">☕ 応援する</a>
       </nav>
     </div>
   </header>
 
-  <main>
+  <main id="top">
     <section class="hero">
-      <div class="wrap">
-        <div class="eyebrow">Windows v1.3 公開中 / Android版あり / Linux AppImage Preview 公開</div>
-        <h1>画像を見る。<br><span class="accent">すばやく整理</span>する。</h1>
-        <p class="lead">
-          SnapSwift は、軽量・高速・広告なしの画像ビューア＆整理ツールです。
-          大量の写真をタイムラインで見返しながら、整理・変換・動画再生・PDF表示・GPSマップ・証明写真作成までまとめて行えます。
-        </p>
-
-        <div class="badges">
-          <span class="badge">⚡ 軽量・高速</span>
-          <span class="badge">✅ 完全無料</span>
-          <span class="badge">🚫 広告なし</span>
-          <span class="badge">🔒 端末内処理中心</span>
-          <span class="badge">🖼️ 大量画像整理</span>
+      <div class="container hero-grid">
+        <div>
+          <div class="badge-row">
+            <span class="badge">Windows / Linux / Android 対応</span>
+            <span class="badge">v1.3.1 安定版</span>
+            <span class="badge">無料・広告なし</span>
+          </div>
+          <h1>画像を見る。<br />すばやく整理する。</h1>
+          <p>SnapSwift は、軽量・高速・広告なしの画像ビューア＆整理ツールです。大量の写真をタイムラインで見返しながら、整理・変換・動画再生・PDF表示・GPSマップ・証明写真作成までまとめて行えます。</p>
+          <div class="badge-row" aria-label="Key features">
+            <span class="badge">⚡ 軽量・高速</span>
+            <span class="badge">✅ 完全無料</span>
+            <span class="badge">🔒 端末内処理中心</span>
+            <span class="badge">🗂️ 大量画像整理</span>
+          </div>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="https://github.com/MtTakao599/SnapSwift/releases" target="_blank" rel="noopener">Windows版をダウンロード</a>
+            <a class="btn btn-secondary" href="https://github.com/MtTakao599/SnapSwift/releases" target="_blank" rel="noopener">Linux AppImage / RPM</a>
+            <a class="btn btn-secondary" href="https://play.google.com/store/apps/details?id=com.snapswift.android" target="_blank" rel="noopener">Google Play</a>
+            <a class="btn btn-secondary" href="#screenshots">スクリーンショットを見る ↓</a>
+          </div>
+          <p class="hero-note">Windows版が基準実装です。Linux版は Ubuntu AppImage を基準に、Ubuntu / Mint / CachyOS / Fedora RPM で検証しています。</p>
         </div>
-
-        <div class="cta">
-          <a class="btn btn-primary" href="https://github.com/MtTakao599/SnapSwift-site/releases/latest" target="_blank" rel="noopener">Windows版をダウンロード</a>
-          <a class="btn btn-secondary" href="https://github.com/MtTakao599/SnapSwift-site/releases/latest" target="_blank" rel="noopener">Linux AppImage Preview</a>
-          <a class="btn btn-secondary" href="https://play.google.com/store/apps/details?id=com.snapswift.android" target="_blank" rel="noopener">Google Play</a>
-          <a class="btn btn-ghost" href="#screenshots">スクリーンショットを見る ↓</a>
-        </div>
-
-        <p class="platforms">Windows版がメインです。Android版は外出先での写真整理補助に、Linux版は AppImage Preview を公開中です。</p>
-
-        <div class="hero-shot">
-          <img src="assets/screenshots/ss_timeline_v13.png" alt="SnapSwift タイムライン画面">
+        <div class="hero-card">
+          <div class="hero-shot"><img src="./images/timeline.png" alt="SnapSwift タイムライン画面" /></div>
+          <div class="hero-stats">
+            <div class="stat"><strong>HEIC/HEIF</strong><span>Linux fallback強化</span></div>
+            <div class="stat"><strong>PDF 5GB</strong><span>巨大PDFを試行</span></div>
+            <div class="stat"><strong>Fedora</strong><span>RPM版推奨</span></div>
+          </div>
         </div>
       </div>
     </section>
 
     <section id="features">
-      <div class="wrap">
-        <div class="section-head">
-          <div>
-            <h2>充実の機能、すべて無料</h2>
-            <p class="section-desc">普段使いの画像ビューアに、整理・変換・動画・PDF・地図・証明写真まで詰め込みました。</p>
-          </div>
+      <div class="container">
+        <div class="section-title">
+          <h2>充実の機能、すべて無料</h2>
+          <p>普段使いの画像ビューアに、整理・変換・動画・PDF・地図・証明写真まで詰め込みました。</p>
         </div>
-
         <div class="feature-grid">
-          <article class="feature"><div class="icon">🗓️</div><h3>日付別タイムライン</h3><p>撮影日でまとめて表示。大量の写真でも目的の1枚を探しやすく。</p></article>
-          <article class="feature"><div class="icon">⚡</div><h3>高速整理モード</h3><p>前後移動・削除・お気に入りをキーボード中心で素早く操作。</p></article>
-          <article class="feature"><div class="icon">🔍</div><h3>似た画像検索</h3><p>dHash・pHashで連写やリサイズ違いをグループ化して整理。</p></article>
-          <article class="feature"><div class="icon">▶️</div><h3>動画再生</h3><p>画像と同じビューア内で動画を確認。速度変更、ループ、全画面にも対応。</p></article>
-          <article class="feature"><div class="icon">🗺️</div><h3>GPSマッピング</h3><p>写真やGPSログを地図で確認。旅・ドライブ・散歩の記録を振り返れます。</p></article>
-          <article class="feature"><div class="icon">🪪</div><h3>証明写真作成</h3><p>背景除去、サイズ選択、L判印刷レイアウト生成までアプリ内で完結。</p></article>
-          <article class="feature"><div class="icon">📄</div><h3>PDFプレビュー</h3><p>PDFを全ページ縦スクロール表示。テキストコピーにも対応。</p></article>
-          <article class="feature"><div class="icon">🧩</div><h3>画像変換・最適化</h3><p>WebP・JPG・PNGなどへ一括変換。SNSやブログ用の画像準備に便利。</p></article>
-          <article class="feature"><div class="icon">❤️</div><h3>お気に入り</h3><p>ビューアからワンタップ登録。専用タブで一覧表示・スライドショーも可能。</p></article>
-          <article class="feature"><div class="icon">📱</div><h3>HEIC/AVIF/GIF/SVG</h3><p>iPhone写真や次世代画像形式にも対応。Windowsでの閲覧・整理を快適に。</p></article>
-          <article class="feature"><div class="icon">🔐</div><h3>EXIF削除・編集</h3><p>位置情報や撮影情報を確認・編集・削除。公開前のプライバシー保護に。</p></article>
-          <article class="feature"><div class="icon">⌨️</div><h3>キーボード操作</h3><p>←→で前後移動、Deleteで削除、Enterで全画面。直感的に操作できます。</p></article>
+          <article class="feature-card"><div class="icon">🗓️</div><h3>日付別タイムライン</h3><p>撮影日でまとめて表示。大量の写真でも目的の1枚を探しやすく。</p></article>
+          <article class="feature-card"><div class="icon">⚡</div><h3>高速整理モード</h3><p>前後移動・削除・お気に入りをキーボード中心で素早く操作。</p></article>
+          <article class="feature-card"><div class="icon">🔍</div><h3>似た画像検索</h3><p>dHash・pHashで連写やリサイズ違いをグループ化して整理。</p></article>
+          <article class="feature-card"><div class="icon">▶️</div><h3>動画再生</h3><p>画像と同じビューア内で動画を確認。速度変更、ループ、全画面にも対応。</p></article>
+          <article class="feature-card"><div class="icon">🗺️</div><h3>GPSマッピング</h3><p>写真やGPSログを地図で確認。トラック表示も見やすく改善しました。</p></article>
+          <article class="feature-card"><div class="icon">🪪</div><h3>証明写真作成</h3><p>傾き補正、背景処理、サイズ選択、L判印刷レイアウト生成までアプリ内で完結。</p></article>
+          <article class="feature-card"><div class="icon">📄</div><h3>PDFプレビュー</h3><p>PDFを全ページ縦スクロール表示。巨大PDFにも警告付きで対応を拡張。</p></article>
+          <article class="feature-card"><div class="icon">🔁</div><h3>画像変換・最適化</h3><p>WebP・JPG・PNGなどへ一括変換。SNSやブログ用の画像準備に便利。</p></article>
+          <article class="feature-card"><div class="icon">❤️</div><h3>お気に入り</h3><p>ビューアからワンタップ登録。専用タブで一覧表示・スライドショーも可能。</p></article>
+          <article class="feature-card"><div class="icon">🍎</div><h3>HEIC/AVIF/GIF/SVG</h3><p>iPhone写真や次世代画像形式にも対応。Linuxでは libheif fallback を追加。</p></article>
+          <article class="feature-card"><div class="icon">🧹</div><h3>EXIF削除・編集</h3><p>位置情報や撮影情報を確認・編集・削除。公開前のプライバシー保護に。</p></article>
+          <article class="feature-card"><div class="icon">⌨️</div><h3>キーボード操作</h3><p>←→で前後移動、Deleteで削除、Enterで全画面。直感的に操作できます。</p></article>
         </div>
       </div>
     </section>
 
     <section id="screenshots">
-      <div class="wrap">
-        <div class="section-head">
-          <div>
-            <h2>実際の画面</h2>
-            <p class="section-desc">現在の SnapSwift v1.3 の主要画面です。文章よりも、使い心地が伝わる本物のスクリーンショットを掲載しています。</p>
-          </div>
+      <div class="container">
+        <div class="section-title">
+          <h2>実際の画面</h2>
+          <p>現在の SnapSwift v1.3.1 の主要画面です。文章よりも、使い心地が伝わる本物のスクリーンショットを掲載しています。</p>
         </div>
-
         <div class="screens">
-          <article class="screen-card large">
-            <img src="assets/screenshots/ss_timeline_v13.png" alt="タイムライン画面">
-            <div class="screen-body">
-              <span class="label">タイムライン</span>
-              <h3>大量の写真を日付でまとめて閲覧</h3>
-              <p>撮影日ごとのタイムラインで、思い出を自然にたどれます。大量の写真でも軽快に表示します。</p>
-            </div>
-          </article>
-
-          <article class="screen-card">
-            <img src="assets/screenshots/ss_fast_organize.png" alt="高速整理画面">
-            <div class="screen-body">
-              <span class="label">高速整理</span>
-              <h3>大量写真をテンポよく仕分け</h3>
-              <p>前後移動、削除、お気に入り登録を素早く実行。迷った写真を効率よく整理できます。</p>
-            </div>
-          </article>
-
-          <article class="screen-card">
-            <img src="assets/screenshots/ss_similar.png" alt="類似画像検索画面">
-            <div class="screen-body">
-              <span class="label">類似画像検索</span>
-              <h3>重複・連写・リサイズ違いを検出</h3>
-              <p>似た画像をグループ化し、推奨画像を残しながら不要画像を整理できます。</p>
-            </div>
-          </article>
-
-          <article class="screen-card">
-            <img src="assets/screenshots/ss_video.png" alt="動画ビューア画面">
-            <div class="screen-body">
-              <span class="label">動画再生</span>
-              <h3>画像も動画も同じビューアで</h3>
-              <p>ローカル動画をそのまま再生。速度変更、ループ、全画面など日常利用に必要な操作を備えています。</p>
-            </div>
-          </article>
-
-          <article class="screen-card">
-            <img src="assets/screenshots/ss_pdf.png" alt="PDF表示画面">
-            <div class="screen-body">
-              <span class="label">PDF</span>
-              <h3>PDFもそのまま確認</h3>
-              <p>全ページ縦スクロール表示とテキストコピーに対応。画像と一緒に資料も確認できます。</p>
-            </div>
-          </article>
-
-          <article class="screen-card">
-            <img src="assets/screenshots/ss_map.png" alt="GPSマップ画面">
-            <div class="screen-body">
-              <span class="label">マップ</span>
-              <h3>写真と移動記録を地図で確認</h3>
-              <p>GPSログや写真の位置情報を地図上に表示。旅行やドライブの記録整理に便利です。</p>
-            </div>
-          </article>
-
-          <article class="screen-card">
-            <img src="assets/screenshots/ss_idphoto_v13.png" alt="証明写真作成画面">
-            <div class="screen-body">
-              <span class="label">証明写真</span>
-              <h3>証明写真をアプリ内で作成</h3>
-              <p>履歴書、パスポート、マイナンバー、運転免許などに対応。背景変更や印刷レイアウトもまとめて作れます。</p>
-            </div>
-          </article>
+          <article class="screen-card"><img src="./images/timeline.png" alt="タイムライン画面" /><div class="screen-body"><h3>大量の写真を日付でまとめて閲覧</h3><p>撮影日ごとのタイムラインで、思い出を自然にたどれます。大量の写真でも軽快に表示します。</p></div></article>
+          <article class="screen-card"><img src="./images/fast-delete.png" alt="高速整理画面" /><div class="screen-body"><h3>大量写真をテンポよく仕分け</h3><p>前後移動、削除、お気に入り登録を素早く実行。迷った写真を効率よく整理できます。</p></div></article>
+          <article class="screen-card"><img src="./images/similar.png" alt="類似画像検索画面" /><div class="screen-body"><h3>重複・連写・リサイズ違いを検出</h3><p>似た画像をグループ化し、推奨画像を残しながら不要画像を整理できます。</p></div></article>
+          <article class="screen-card"><img src="./images/video.png" alt="動画ビューア画面" /><div class="screen-body"><h3>画像も動画も同じビューアで</h3><p>ローカル動画をそのまま再生。速度変更、ループ、全画面など日常利用に必要な操作を備えています。</p></div></article>
+          <article class="screen-card"><img src="./images/pdf.png" alt="PDF表示画面" /><div class="screen-body"><h3>PDFもそのまま確認</h3><p>全ページ縦スクロール表示とテキストコピーに対応。画像と一緒に資料も確認できます。</p></div></article>
+          <article class="screen-card"><img src="./images/map.png" alt="GPSマップ画面" /><div class="screen-body"><h3>写真と移動記録を地図で確認</h3><p>GPSログや写真の位置情報を地図上に表示。旅行やドライブの記録整理に便利です。</p></div></article>
+          <article class="screen-card"><img src="./images/id-photo.png" alt="証明写真作成画面" /><div class="screen-body"><h3>証明写真をアプリ内で作成</h3><p>履歴書、パスポート、マイナンバー、運転免許などに対応。背景変更や印刷レイアウトもまとめて作れます。</p></div></article>
         </div>
       </div>
     </section>
 
-    <section id="versions">
-      <div class="wrap">
-        <div class="section-head">
-          <div>
-            <h2>対応版</h2>
-            <p class="section-desc">Windows版を中心に、Android版とLinux版も展開しています。</p>
-          </div>
+    <section id="platforms">
+      <div class="container">
+        <div class="section-title">
+          <h2>対応版</h2>
+          <p>Windows版を基準に、Linux版とAndroid版も展開しています。</p>
         </div>
-        <div class="versions">
-          <article class="version-card">
-            <h3>Windows v1.3</h3>
+        <div class="platform-grid">
+          <article class="platform-card">
+            <h3>Windows v1.3.1</h3>
             <p>メイン版。タイムライン、高速整理、類似画像検索、動画、PDF、GPSマップ、証明写真作成まで対応。</p>
+            <div class="pill-list"><span class="pill">NSIS</span><span class="pill">WebView2</span><span class="pill">基準実装</span></div>
           </article>
-          <article class="version-card">
+          <article class="platform-card">
+            <h3>Linux v1.3.1</h3>
+            <p>Ubuntu AppImageを基準に、Ubuntu / Mint / CachyOSで確認済み。FedoraではRPM版を推奨します。</p>
+            <div class="pill-list"><span class="pill">AppImage</span><span class="pill">RPM</span><span class="pill">HEIC fallback</span></div>
+          </article>
+          <article class="platform-card">
             <h3>Android版</h3>
-            <p>外出先での写真確認や整理補助に。Google Play から無料で利用できます。</p>
-          </article>
-          <article class="version-card">
-            <h3>Linux AppImage Preview</h3>
-            <p>CachyOS / Arch Linux 環境を中心に動作確認済み。動画再生・PDF・タイムライン・類似画像検索など主要機能に対応しています。</p>
+            <p>外出先での写真確認や整理補助に。Google Playから無料で利用できます。</p>
+            <div class="pill-list"><span class="pill">Google Play</span><span class="pill">端末内処理</span><span class="pill">無料</span></div>
           </article>
         </div>
       </div>
     </section>
 
-
-    <section id="linux-preview">
-      <div class="wrap">
-        <div class="section-head">
-          <div>
-            <h2>Linux AppImage Preview</h2>
-            <p class="section-desc">
-              SnapSwift の Linux版 AppImage Preview を公開しました。
-              現在は CachyOS / Arch Linux 環境を中心に検証中です。
-            </p>
+    <section id="linux">
+      <div class="container">
+        <div class="section-title">
+          <h2>Linux版について</h2>
+          <p>v1.3.1ではLinux版を安定化し、ディストリビューション差を整理しました。</p>
+        </div>
+        <div class="linux-note">
+          <h3>配布と推奨環境</h3>
+          <p>Linux版は Ubuntu 24.04 でビルドした AppImage を基準に、Ubuntu / Linux Mint / CachyOS で動作確認しています。Fedoraでは AppImage より RPM版を推奨します。</p>
+          <p>HEIC/HEIFや一部動画形式では、OS側の ffmpeg / libheif / GStreamer 環境に影響される場合があります。Fedoraでは RPM Fusion / freeworld ffmpeg が必要になる場合があります。</p>
+          <div class="code-grid">
+            <div><strong>Ubuntu / Debian</strong><pre>sudo apt install ffmpeg xdg-utils \
+  gstreamer1.0-plugins-base \
+  gstreamer1.0-plugins-good \
+  gstreamer1.0-plugins-bad \
+  gstreamer1.0-plugins-ugly \
+  gstreamer1.0-libav</pre></div>
+            <div><strong>Arch / CachyOS</strong><pre>sudo pacman -S ffmpeg xdg-utils \
+  gstreamer gst-plugins-base \
+  gst-plugins-good gst-plugins-bad \
+  gst-plugins-ugly gst-libav</pre></div>
+            <div><strong>Fedora</strong><pre># RPM版推奨
+# HEIC/動画で必要に応じて
+# RPM Fusion / freeworld ffmpeg を導入</pre></div>
           </div>
         </div>
+      </div>
+    </section>
 
-        <div class="privacy">
-          <article class="privacy-card">
-            <h3>対応機能</h3>
-            <p>タイムライン表示、動画再生、PDFプレビュー、類似画像検索、GPSマップ、証明写真作成に対応しています。</p>
-          </article>
-
-          <article class="privacy-card">
-            <h3>動画再生</h3>
-            <p>WebKitGTK + GStreamer ベースの Linux 専用動画再生経路を実装。faststart remux と custom controls に対応しています。</p>
-          </article>
-
-          <article class="privacy-card">
-            <h3>必要パッケージ</h3>
-            <p>Linux動画再生には GStreamer plugins が必要です。</p>
-          </article>
-        </div>
-
-        <div class="history" style="margin-top:24px;">
-          <div class="history-item">
-            <h3>Arch / CachyOS</h3>
-            <pre style="white-space:pre-wrap;color:#d1d5db;">sudo pacman -S gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly gst-libav ffmpeg xdg-utils</pre>
-          </div>
-
-          <div class="history-item">
-            <h3>Ubuntu / Debian</h3>
-            <pre style="white-space:pre-wrap;color:#d1d5db;">sudo apt install ffmpeg xdg-utils gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav</pre>
-          </div>
+    <section id="pdf-note">
+      <div class="container">
+        <div class="pdf-note">
+          <h3>PDF表示について</h3>
+          <p>PDF表示には PDFium を使用しています。v1.3.1ではサイズ上限を拡張し、最大5GBまでのPDFを警告付きで試行できます。120MBを超えるPDFでは、表示に時間がかかる、またはメモリ不足や互換性の問題で開けない場合があります。</p>
+          <p>一部の特殊なPDFでは、Adobe Acrobat Readerで開けてもSnapSwiftでは開けない場合があります。</p>
         </div>
       </div>
     </section>
 
     <section id="history">
-      <div class="wrap">
-        <div class="section-head">
-          <div>
-            <h2>更新履歴</h2>
-            <p class="section-desc">最新の主な変更点です。</p>
-          </div>
+      <div class="container">
+        <div class="section-title">
+          <h2>更新履歴</h2>
+          <p>最新の主な変更点です。</p>
         </div>
-        <div class="history">
-          <div class="history-item">
+        <div class="timeline">
+          <article class="release">
+            <h3>Windows / Linux v1.3.1</h3>
+            <ul>
+              <li>Linux版を安定化し、Ubuntu AppImageを基準に Mint / CachyOS / Fedora で検証</li>
+              <li>Fedora向けRPM版を追加し、FedoraではRPM版を推奨</li>
+              <li>HEIC/HEIF表示を改善。Linuxでは ffmpeg → libheif fallback を導入</li>
+              <li>証明写真作成を安定化（傾き補正・背景処理・保存）</li>
+              <li>高速整理とフォルダ機能を改善</li>
+              <li>フォルダ内でも Ctrl / Shift 複数選択削除に対応</li>
+              <li>PDF表示のサイズ上限を拡張し、巨大PDFでは警告を表示</li>
+              <li>GPSマップのトラック表示を改善</li>
+              <li>Linux互換性画面を「診断 + コピー」方式に整理</li>
+              <li>Linuxアプリメニュー表示用の Desktop Entry を改善</li>
+            </ul>
+          </article>
+          <article class="release">
             <h3>Windows v1.3</h3>
             <ul>
               <li>タイムラインUI改善（余白・グループ間隔・Sticky年月ヘッダー）</li>
               <li>ナビゲーションアイコンをFluent Iconsに統一</li>
               <li>GPS画面UIをAndroid版に合わせて刷新</li>
-              <li>ボタン色をCSS変数で統一</li>
               <li>証明写真の操作をステップ表示で分かりやすく改善</li>
               <li>サムネイルのちらつき・キャッシュ更新まわりを改善</li>
             </ul>
-          </div>
-          <div class="history-item">
-            <h3>Linux AppImage Preview</h3>
-            <ul>
-              <li>Linux向け AppImage Preview を公開</li>
-              <li>WebKitGTK 動画再生対応</li>
-              <li>custom video controls を実装</li>
-              <li>faststart remux に対応</li>
-              <li>GStreamer plugin path 自動補完</li>
-              <li>xdg-open / 外部アプリ連携対応</li>
-              <li>Wayland 環境のウィンドウ復元改善</li>
-            </ul>
-          </div>
-          <div class="history-item">
+          </article>
+          <article class="release">
             <h3>Windows v1.2</h3>
             <ul>
-              <li>似た画像検索を追加</li>
-              <li>GPSマッピング機能を追加</li>
-              <li>PDFプレビューに対応</li>
-              <li>高速削除モードを追加</li>
+              <li>似た画像検索、GPSマッピング、PDFプレビュー、高速削除モードを追加</li>
               <li>動画再生・お気に入り・HEIC/AVIF/GIF/SVG対応を強化</li>
             </ul>
-          </div>
-          <div class="history-item">
-            <h3>v0.3.0 以前</h3>
-            <ul>
-              <li>証明写真作成機能、スライドショー、フィルター、一括フォーマット変換を追加</li>
-              <li>日付別タイムライン、フォルダ別アルバム、EXIF情報表示、Googleレンズ連携を搭載</li>
-            </ul>
-          </div>
+          </article>
         </div>
       </div>
     </section>
 
     <section id="privacy">
-      <div class="wrap">
-        <div class="section-head">
-          <div>
-            <h2>プライバシー</h2>
-            <p class="section-desc">安心して写真を扱えるよう、広告や解析を入れず、端末内処理を重視しています。</p>
-          </div>
+      <div class="container">
+        <div class="section-title">
+          <h2>プライバシー</h2>
+          <p>安心して写真を扱えるよう、広告や解析を入れず、端末内処理を重視しています。</p>
         </div>
-        <div class="privacy">
-          <article class="privacy-card"><h3>個人情報を収集しません</h3><p>SnapSwift はお客様の個人情報を収集しません。写真データは基本的にお客様のデバイス内で処理されます。</p></article>
-          <article class="privacy-card"><h3>広告・解析なし</h3><p>広告表示や利用状況解析ツールは使用していません。無料のまま、シンプルに使えます。</p></article>
-          <article class="privacy-card"><h3>外部サービス</h3><p>Googleレンズなど外部サービスを使う機能では、利用時のみ外部サービスへ遷移します。</p></article>
+        <div class="privacy-grid">
+          <article class="privacy-box"><h3>個人情報を収集しません</h3><p>SnapSwift はお客様の個人情報を収集しません。写真データは基本的にお客様のデバイス内で処理されます。</p></article>
+          <article class="privacy-box"><h3>広告・解析なし</h3><p>広告表示や利用状況解析ツールは使用していません。無料のまま、シンプルに使えます。</p></article>
+          <article class="privacy-box"><h3>外部サービス</h3><p>Googleレンズなど外部サービスを使う機能では、利用時のみ外部サービスへ遷移します。</p></article>
         </div>
       </div>
     </section>
 
     <section id="support">
-      <div class="wrap">
-        <div class="section-head">
-          <div>
-            <h2>SnapSwift を応援する</h2>
-            <p class="section-desc">アプリは完全無料です。気に入ってくださった方は、開発の応援も歓迎です。</p>
-          </div>
+      <div class="container">
+        <div class="linux-note">
+          <h2>SnapSwift を応援する</h2>
+          <p>アプリは完全無料です。気に入ってくださった方は、開発の応援も歓迎です。</p>
           <a class="btn btn-secondary" href="https://ko-fi.com/snapswift" target="_blank" rel="noopener">☕ 開発者を応援する</a>
         </div>
       </div>
@@ -517,14 +365,14 @@
   </main>
 
   <footer>
-    <div class="wrap footer-grid">
-      <div><strong>⚡ SnapSwift</strong><br>© 2026 SnapSwift. All rights reserved.</div>
+    <div class="container footer-inner">
+      <div><strong>⚡ SnapSwift</strong><br /><span class="small">© 2026 Koishi / SnapSwift. All rights reserved.</span></div>
       <div class="footer-links">
         <a href="#features">機能</a>
         <a href="#screenshots">スクリーンショット</a>
         <a href="#history">更新履歴</a>
         <a href="#privacy">プライバシー</a>
-        <a href="mailto:violakamikita@gmail.com">メールで問い合わせる</a>
+        <a href="mailto:snapswift.app@gmail.com">メールで問い合わせる</a>
       </div>
     </div>
   </footer>
