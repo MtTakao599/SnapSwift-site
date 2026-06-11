@@ -23,18 +23,39 @@
       attr: '© CARTO © OSM',
       maxZoom: 19,
     },
-    hiking: {
-      url: 'https://tile.opentopomap.org/{z}/{x}/{y}.png',
-      attr: '© OpenTopoMap（ハイキング）',
-      maxZoom: 17,
-    },
-    cycling: {
-      url: 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
-      attr: '© CyclOSM © OSM',
-      maxZoom: 17,
-      subdomains: 'abc',
-    },
   };
+
+  /** v1.4.0: 安定レイヤのみ（CyclOSM / サイクリング向けは無効） */
+  const ALLOWED_LAYER_KEYS = ['standard', 'terrain', 'aerial', 'dark'];
+
+  function buildTileLayerOptions(t) {
+    const opts = { attribution: t.attr, maxZoom: t.maxZoom };
+    if (t.subdomains) opts.subdomains = t.subdomains;
+    return opts;
+  }
+
+  function showLayerUnavailableNotice() {
+    const panel = document.getElementById('layer-panel');
+    if (!panel) return;
+    let hint = document.getElementById('layer-error-hint');
+    if (!hint) {
+      hint = document.createElement('div');
+      hint.id = 'layer-error-hint';
+      hint.style.cssText =
+        'margin-top:8px;font-size:0.68rem;color:#f5d76e;line-height:1.4;';
+      panel.appendChild(hint);
+    }
+    hint.textContent =
+      'この地図レイヤは現在利用できません。OpenStreetMap（標準）を表示しています。';
+  }
+
+  function pruneLayerSelectOptions() {
+    const sel = document.getElementById('layer-select');
+    if (!sel) return;
+    sel.querySelectorAll('option').forEach((opt) => {
+      if (!ALLOWED_LAYER_KEYS.includes(opt.value)) opt.remove();
+    });
+  }
 
   const SPEEDS = [1, 2, 5, 10, 20, 50, 100];
   const PHOTO_POPUP_RADIUS_M = 35;
@@ -42,6 +63,173 @@
   const HIGHLIGHT_PHOTO_RADIUS_M = 80;
   /** Most Photographed Spot のクラスタ半径（Rust 側と同値） */
   const PHOTO_CLUSTER_RADIUS_M = 50;
+
+  function escapeAttr(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;');
+  }
+
+  function escapeText(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;');
+  }
+
+  /** 公開 HTML ではローカル絶対パス・file:// を画像 src に使わない */
+  function isUnsafeImageSrc(src) {
+    if (!src || typeof src !== 'string') return true;
+    const s = src.trim();
+    if (!s) return true;
+    if (/^file:/i.test(s)) return true;
+    if (/^[A-Za-z]:[\\/]/.test(s)) return true;
+    if (s.startsWith('/') && !s.startsWith('thumbs/')) return true;
+    if (s.includes('\\')) return true;
+    return false;
+  }
+
+  function photoThumbSrc(photo) {
+    if (!photo || typeof photo !== 'object') return null;
+    const thumb = photo.thumb;
+    if (!thumb || isUnsafeImageSrc(thumb)) return null;
+    return thumb;
+  }
+
+  function photoDisplayName(photo) {
+    if (photo.fileName) return photo.fileName;
+    const thumb = photoThumbSrc(photo);
+    if (thumb) return thumb.split('/').pop() || 'Photo';
+    return 'Photo';
+  }
+
+  function photoEntryKey(photo, index) {
+    const thumb = photoThumbSrc(photo);
+    if (thumb) return thumb;
+    return `photo:${photo.lat},${photo.lon},${photo.fileName || index}`;
+  }
+
+  function sanitizePhotosForPublic(photos) {
+    return (photos || []).map((raw, index) => {
+      const photo = { ...raw };
+      delete photo.path;
+      const thumb = photoThumbSrc(photo);
+      if (thumb) photo.thumb = thumb;
+      else delete photo.thumb;
+      if (!photo.fileName) {
+        photo.fileName = thumb
+          ? thumb.split('/').pop() || `photo-${index + 1}`
+          : `photo-${index + 1}`;
+      }
+      return photo;
+    });
+  }
+
+  function photoThumbMarkup(photo, className) {
+    const src = photoThumbSrc(photo);
+    if (src) {
+      return `<img src="${escapeAttr(src)}" class="${className || ''}" alt="" loading="lazy">`;
+    }
+    return `<span class="thumb-placeholder${className ? ` ${className}` : ''}" aria-hidden="true">📷</span>`;
+  }
+
+  function photoPlacementLabel(photo) {
+    if (photo.placement === 'route_time') {
+      const diff = photo.routeTimeDiffSeconds;
+      if (diff != null && Number.isFinite(diff)) {
+        return `ルート時刻に合わせて配置 (±${Math.round(diff)}s)`;
+      }
+      return 'ルート時刻に合わせて配置';
+    }
+    if (photo.placement === 'exif_gps') {
+      return 'EXIF GPS位置に配置';
+    }
+    if (photo.placement === 'nearest_position') {
+      return 'ルート上の最近傍点に配置';
+    }
+    return '';
+  }
+
+  function logGpsLogPhotoPlacement(photo) {
+    const tag = '[TravelReplayExport]';
+    console.log(
+      `${tag} photo ${photo.fileName || photoDisplayName(photo)} placement ${photo.placement || 'unknown'} time ${photo.time || '—'} routeIndex ${photo._routeIndex ?? photo.routeIndex ?? '—'} routeDistanceMeters ${photo.routeDistanceMeters ?? '—'} routeTimeDiffSeconds ${photo.routeTimeDiffSeconds ?? '—'} original (${photo.originalLat ?? '—'},${photo.originalLon ?? '—'}) placed (${photo.lat},${photo.lon})`,
+    );
+  }
+
+  function nearestReplayPointByPhotoTime(replayPath, photoTimeMs) {
+    let best = null;
+    let bestDiffSec = Infinity;
+    for (let i = 0; i < replayPath.length; i++) {
+      const p = replayPath[i];
+      const routeMs = parseTimeMs(p.time);
+      if (routeMs == null) continue;
+      const diffSec = Math.abs(photoTimeMs - routeMs) / 1000;
+      if (diffSec < bestDiffSec) {
+        bestDiffSec = diffSec;
+        best = { index: i, distM: p.distM, diffSeconds: diffSec };
+      }
+    }
+    return best;
+  }
+
+  function bindGpsLogPhotosToRoute(photos, replayPath) {
+    const routeHasTime = replayPath.some(p => parseTimeMs(p.time) != null);
+    for (const photo of photos) {
+      if (photo.routeIndex != null && Number.isFinite(photo.routeIndex)) {
+        photo._routeIndex = photo.routeIndex;
+        continue;
+      }
+      if (routeHasTime && photo.time) {
+        const photoMs = parseTimeMs(photo.time);
+        if (photoMs != null) {
+          const hit = nearestReplayPointByPhotoTime(replayPath, photoMs);
+          if (hit) {
+            photo._routeIndex = hit.index;
+            if (photo.routeDistanceMeters == null) photo.routeDistanceMeters = hit.distM;
+            if (photo.routeTimeDiffSeconds == null) photo.routeTimeDiffSeconds = hit.diffSeconds;
+          }
+        }
+      }
+    }
+  }
+
+  function photoRouteIndex(photo) {
+    const ri = photo._routeIndex ?? photo.routeIndex;
+    return ri != null && Number.isFinite(ri) ? ri : -1;
+  }
+
+  function resolveGpsLogActivePhotoIndex(photos, routeIndex, activePhotoIndex, allowBackward) {
+    if (!photos.length || routeIndex < 0) return -1;
+
+    if (allowBackward || activePhotoIndex < 0) {
+      let idx = -1;
+      for (let i = 0; i < photos.length; i++) {
+        const ri = photoRouteIndex(photos[i]);
+        if (ri >= 0 && ri <= routeIndex) idx = i;
+      }
+      return idx;
+    }
+
+    let idx = activePhotoIndex < 0 ? -1 : activePhotoIndex;
+    const start = idx < 0 ? 0 : idx + 1;
+    for (let i = start; i < photos.length; i++) {
+      const ri = photoRouteIndex(photos[i]);
+      if (ri < 0) continue;
+      if (ri <= routeIndex) idx = i;
+      else break;
+    }
+    return idx;
+  }
+
+  function photoDistOnRoute(photo, replayPath) {
+    if (photo.routeDistanceMeters != null && Number.isFinite(photo.routeDistanceMeters)) {
+      return photo.routeDistanceMeters;
+    }
+    const ri = photoRouteIndex(photo);
+    if (ri >= 0 && replayPath[ri]) return replayPath[ri].distM;
+    return null;
+  }
 
   const LS_KEYS = {
     age: 'snapswift.travelReplay.age',
@@ -548,6 +736,28 @@
     return best;
   }
 
+  function createSyncMarkerIcon(variant) {
+    const v = variant || 'current';
+    return {
+      html: `<div class="sync-marker sync-marker--${v}"><span class="sync-marker-pulse"></span><span class="sync-marker-core"></span></div>`,
+      className: 'sync-marker-host',
+      iconSize: [22, 22],
+      iconAnchor: [11, 11],
+    };
+  }
+
+  function ensureProfileSyncOverlay() {
+    const wrap = document.getElementById('elevation-chart-wrap');
+    if (!wrap || document.getElementById('profile-sync-overlay')) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'profile-sync-overlay';
+    overlay.innerHTML =
+      '<div class="profile-sync-fill"></div>' +
+      '<div class="profile-sync-vline"></div>' +
+      '<div class="profile-sync-dot"></div>';
+    wrap.appendChild(overlay);
+  }
+
   function segmentAtDist(path, distM) {
     if (!path.length) return null;
     if (distM <= path[0].distM) {
@@ -659,10 +869,12 @@
       return;
     }
 
-    const photos = [...(mapData.photos || [])].sort((a, b) => {
+    const photos = sanitizePhotosForPublic(mapData.photos).sort((a, b) => {
       const ta = parseTimeMs(a.time) ?? 0;
       const tb = parseTimeMs(b.time) ?? 0;
-      return ta - tb || (a.thumb || '').localeCompare(b.thumb || '');
+      return ta - tb
+        || photoDisplayName(a).localeCompare(photoDisplayName(b))
+        || photoEntryKey(a, 0).localeCompare(photoEntryKey(b, 0));
     });
     const tracks = mapData.tracks || [];
     const stats = mapData.stats || {};
@@ -671,6 +883,15 @@
     const photoOnlyHighlights = mapData.photoOnlyHighlights || null;
     const mapMode = mapData.mode || 'gpsLog';
     const routeNote = mapData.routeNote || '';
+
+    if (mapMode === 'gpsLog') {
+      bindGpsLogPhotosToRoute(photos, replayPath);
+      const routeHasTime = replayPath.some(p => parseTimeMs(p.time) != null);
+      console.log(`[TravelReplayRoute] route has time ${routeHasTime}`);
+      for (const photo of photos) {
+        logGpsLogPhotoPlacement(photo);
+      }
+    }
 
     const routeBanner = document.getElementById('route-mode-banner');
     if (routeBanner) {
@@ -685,30 +906,54 @@
     const totalRouteDistM = routeTotalDistM(replayPath, stats);
 
     const map = L.map('map', { zoomControl: true });
-    const std = TILES.standard;
-    let tileLayer = L.tileLayer(std.url, {
-      attribution: std.attr,
-      maxZoom: std.maxZoom,
-    }).addTo(map);
+    pruneLayerSelectOptions();
+
+    let tileLayer = null;
+    let layerFallbackLock = false;
+
+    function switchBasemap(key, noticeOpts) {
+      const resolved =
+        ALLOWED_LAYER_KEYS.includes(key) && TILES[key] ? key : 'standard';
+      const t = TILES[resolved];
+      if (tileLayer) {
+        try {
+          map.removeLayer(tileLayer);
+        } catch (_) {}
+      }
+      layerFallbackLock = false;
+      tileLayer = L.tileLayer(t.url, buildTileLayerOptions(t));
+      tileLayer.on('tileerror', (e) => {
+        console.warn('[SnapSwiftTravelReplay] tile error', resolved, e);
+        if (resolved === 'standard' || layerFallbackLock) return;
+        layerFallbackLock = true;
+        console.warn(
+          '[SnapSwiftTravelReplay] falling back to OpenStreetMap from',
+          resolved,
+        );
+        const sel = document.getElementById('layer-select');
+        if (sel) sel.value = 'standard';
+        switchBasemap('standard', { showNotice: true });
+      });
+      tileLayer.addTo(map);
+      const sel = document.getElementById('layer-select');
+      if (sel && sel.value !== resolved) sel.value = resolved;
+      if (noticeOpts && noticeOpts.showNotice) showLayerUnavailableNotice();
+    }
+
+    switchBasemap('standard');
 
     let elevationChart = null;
     let elevationChartSeries = [];
 
-    function refreshLayout() {
+    let refreshLayout = () => {
       map.invalidateSize();
       if (elevationChart) elevationChart.resize();
-    }
+    };
 
     initTabPanel(refreshLayout);
-    window.addEventListener('resize', refreshLayout);
 
     document.getElementById('layer-select').addEventListener('change', (e) => {
-      const key = e.target.value;
-      const t = TILES[key] || TILES.standard;
-      map.removeLayer(tileLayer);
-      const opts = { attribution: t.attr, maxZoom: t.maxZoom };
-      if (t.subdomains) opts.subdomains = t.subdomains;
-      tileLayer = L.tileLayer(t.url, opts).addTo(map);
+      switchBasemap(e.target.value || 'standard');
     });
 
     const allLatLons = [];
@@ -730,14 +975,27 @@
     let activeTimelineThumb = null;
 
     function popupHtml(photo) {
-      const name = (photo.thumb || '').split('/').pop() || '';
-      return `<div class="photo-popup"><img src="${photo.thumb}" loading="lazy"><div class="name">${name}</div><div class="coords">${photo.lat.toFixed(6)}, ${photo.lon.toFixed(6)}</div></div>`;
+      const name = escapeText(photoDisplayName(photo));
+      const img = photoThumbMarkup(photo);
+      const placement = photoPlacementLabel(photo);
+      const placementHtml = placement
+        ? `<div class="placement-hint">${escapeText(placement)}</div>`
+        : '';
+      let debugHtml = '';
+      if (mapMode === 'gpsLog') {
+        const ri = photoRouteIndex(photo);
+        const orig = (photo.originalLat != null && photo.originalLon != null)
+          ? `${photo.originalLat.toFixed(6)}, ${photo.originalLon.toFixed(6)}`
+          : '—';
+        debugHtml = `<div class="placement-debug">placement: ${escapeText(photo.placement || '—')}<br>time: ${escapeText(photo.time || '—')}<br>routeIndex: ${ri >= 0 ? ri : '—'}<br>routeTimeDiffSeconds: ${photo.routeTimeDiffSeconds ?? '—'}<br>original: ${orig}<br>placed: ${photo.lat.toFixed(6)}, ${photo.lon.toFixed(6)}</div>`;
+      }
+      return `<div class="photo-popup">${img}<div class="name">${name}</div>${placementHtml}${debugHtml}<div class="coords">${photo.lat.toFixed(6)}, ${photo.lon.toFixed(6)}</div></div>`;
     }
 
-    function setTimelineActive(thumbKey) {
+    function setTimelineActive(entryKey) {
       if (activeTimelineThumb) activeTimelineThumb.classList.remove('active');
-      activeTimelineThumb = thumbKey
-        ? document.querySelector(`.timeline-thumb[data-thumb="${CSS.escape(thumbKey)}"]`)
+      activeTimelineThumb = entryKey
+        ? document.querySelector(`.timeline-thumb[data-photo-key="${CSS.escape(entryKey)}"]`)
         : null;
       if (activeTimelineThumb) {
         activeTimelineThumb.classList.add('active');
@@ -746,16 +1004,18 @@
     }
 
     function openPhotoPopup(photo, panZoom) {
-      const entry = photoByKey.get(photo.thumb);
+      const entry = photoByKey.get(photo._entryKey);
       if (!entry) return;
       if (panZoom !== false) {
         map.setView([photo.lat, photo.lon], Math.max(map.getZoom(), 15), { animate: true });
       }
       entry.marker.bindPopup(entry.popupHtml(), { maxWidth: 260 }).openPopup();
-      setTimelineActive(photo.thumb);
+      setTimelineActive(photo._entryKey);
     }
 
-    for (const photo of photos) {
+    for (let photoIndex = 0; photoIndex < photos.length; photoIndex++) {
+      const photo = photos[photoIndex];
+      photo._entryKey = photoEntryKey(photo, photoIndex);
       const icon = L.divIcon({
         html: `<div style="width:10px;height:10px;background:${photo.matched ? '#e74c3c' : '#3a9fd8'};border:2px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.5);"></div>`,
         className: '',
@@ -768,13 +1028,16 @@
       const htmlFn = () => popupHtml(photo);
       marker.on('click', () => {
         openPhotoPopup(photo, false);
-        const near = nearestReplayDist(replayPath, photo.lat, photo.lon);
-        if (near && replayState) {
-          replayState.currentDistM = near.distM;
-          setPositionAtDist(near.distM, { source: 'manual', panMap: false, skipPhotoPopup: true });
+        pause();
+        const distM = mapMode === 'gpsLog'
+          ? photoDistOnRoute(photo, replayPath)
+          : nearestReplayDist(replayPath, photo.lat, photo.lon)?.distM;
+        if (distM != null && replayState) {
+          replayState.currentDistM = distM;
+          setPositionAtDist(distM, { source: 'manual', panMap: false, skipPhotoPopup: true, allowBackward: true });
         }
       });
-      photoByKey.set(photo.thumb, { marker, photo, popupHtml: htmlFn });
+      photoByKey.set(photo._entryKey, { marker, photo, popupHtml: htmlFn });
     }
 
     if (allLatLons.length) map.fitBounds(allLatLons, { padding: [40, 40] });
@@ -789,8 +1052,45 @@
       startRealMs: 0,
       startDistM: 0,
       lastPhotoDist: -9999,
+      lastSyncedDistM: 0,
+      currentRouteIndex: 0,
+      activePhotoIndex: -1,
       rafId: 0,
     };
+
+    function syncGpsLogTimelineAtDist(distM, opts) {
+      const source = (opts && opts.source) || 'manual';
+      const explicitBackward = !!(opts && opts.allowBackward);
+      const seekBackward = distM < replayState.lastSyncedDistM - 0.5;
+      const allowBackward = explicitBackward
+        || seekBackward
+        || source === 'chart-click'
+        || source === 'highlight'
+        || source === 'manual'
+        || source === 'sync';
+
+      const routeIndex = findIndexByDist(replayPath, distM);
+      replayState.currentRouteIndex = routeIndex;
+      replayState.lastSyncedDistM = distM;
+
+      const prevIdx = replayState.activePhotoIndex;
+      const newIdx = resolveGpsLogActivePhotoIndex(
+        photos,
+        routeIndex,
+        replayState.activePhotoIndex,
+        allowBackward,
+      );
+      replayState.activePhotoIndex = newIdx;
+
+      if (newIdx >= 0) {
+        setTimelineActive(photos[newIdx]._entryKey);
+      } else if (!(opts && opts.keepTimeline)) {
+        setTimelineActive(null);
+      }
+
+      const changed = newIdx !== prevIdx && newIdx >= 0;
+      return changed ? photos[newIdx] : null;
+    }
 
     const timelineEl = document.getElementById('photo-timeline');
     const noPhotosHint = document.getElementById('no-photos-hint');
@@ -802,51 +1102,101 @@
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'timeline-thumb';
-        btn.dataset.thumb = photo.thumb;
-        btn.title = (photo.thumb || '').split('/').pop() || '';
+        btn.dataset.photoKey = photo._entryKey;
+        btn.title = photoDisplayName(photo);
         const timeLabel = formatPhotoTime(photo.time);
-        btn.innerHTML = `<img src="${photo.thumb}" alt="" loading="lazy">${timeLabel ? `<span class="time-badge">${timeLabel}</span>` : ''}`;
+        btn.innerHTML = `${photoThumbMarkup(photo)}${timeLabel ? `<span class="time-badge">${timeLabel}</span>` : ''}`;
         btn.addEventListener('click', () => {
           openPhotoPopup(photo);
-          const near = nearestReplayDist(replayPath, photo.lat, photo.lon);
-          if (near && replayState) {
-            pause();
-            replayState.currentDistM = near.distM;
-            setPositionAtDist(near.distM, { source: 'manual', panMap: false, skipPhotoPopup: true });
+          pause();
+          const distM = mapMode === 'gpsLog'
+            ? photoDistOnRoute(photo, replayPath)
+            : nearestReplayDist(replayPath, photo.lat, photo.lon)?.distM;
+          if (distM != null && replayState) {
+            replayState.currentDistM = distM;
+            setPositionAtDist(distM, { source: 'manual', panMap: false, skipPhotoPopup: true, allowBackward: true });
           }
         });
         timelineEl.appendChild(btn);
       }
     }
 
-    const currentIcon = L.divIcon({
-      html: '<div class="current-marker-wrap"></div>',
-      className: '',
-      iconSize: [16, 16],
-      iconAnchor: [8, 8],
-    });
     let currentMarker = null;
     let previewMarker = null;
     if (replayPath.length) {
       const p0 = replayPath[0];
-      currentMarker = L.marker([p0.lat, p0.lon], { icon: currentIcon, zIndexOffset: 1000 }).addTo(map);
+      currentMarker = L.marker([p0.lat, p0.lon], {
+        icon: L.divIcon(createSyncMarkerIcon('current')),
+        zIndexOffset: 1000,
+      }).addTo(map);
     }
-
-    const previewIcon = L.divIcon({
-      html: '<div class="current-marker-wrap"></div>',
-      className: 'profile-preview-marker',
-      iconSize: [16, 16],
-      iconAnchor: [8, 8],
-    });
 
     let chartSyncLock = false;
     const hasElevation = replayPath.some(p => p.ele != null);
+    const readoutsPanel = document.getElementById('profile-readouts');
+
+    function setReadoutsHighlight(mode) {
+      if (!readoutsPanel) return;
+      readoutsPanel.classList.remove('profile-readouts--live', 'profile-readouts--preview');
+      if (mode) readoutsPanel.classList.add(`profile-readouts--${mode}`);
+    }
+
+    function updateProfileSyncOverlay(distM, variant) {
+      const overlay = document.getElementById('profile-sync-overlay');
+      if (!overlay || !elevationChart || !hasElevation || !elevationChartSeries.length) return;
+      if (!variant || variant === 'hidden') {
+        overlay.style.display = 'none';
+        return;
+      }
+      const area = elevationChart.chartArea;
+      if (!area || area.right <= area.left) return;
+
+      const distKm = distM / 1000;
+      const x = elevationChart.scales.x.getPixelForValue(distKm);
+      const idx = findChartIndexByDist(elevationChartSeries, distM);
+      const pt = elevationChartSeries[idx];
+      const y = pt ? elevationChart.scales.y.getPixelForValue(pt.y) : area.bottom;
+
+      overlay.style.display = 'block';
+      overlay.className = `profile-sync-overlay profile-sync-overlay--${variant}`;
+
+      const fill = overlay.querySelector('.profile-sync-fill');
+      const vline = overlay.querySelector('.profile-sync-vline');
+      const dot = overlay.querySelector('.profile-sync-dot');
+      if (!fill || !vline || !dot) return;
+
+      const fillLeft = area.left;
+      const fillWidth = Math.max(0, x - area.left);
+      fill.style.top = `${area.top}px`;
+      fill.style.height = `${area.bottom - area.top}px`;
+      fill.style.left = `${fillLeft}px`;
+      fill.style.width = `${fillWidth}px`;
+
+      vline.style.left = `${x}px`;
+      vline.style.top = `${area.top}px`;
+      vline.style.height = `${area.bottom - area.top}px`;
+
+      dot.style.left = `${x}px`;
+      dot.style.top = `${y}px`;
+    }
+
+    function dimCurrentMarker(dim) {
+      if (!currentMarker) return;
+      const el = currentMarker.getElement();
+      if (el) el.classList.toggle('sync-marker-dimmed', !!dim);
+    }
 
     function clearPreviewMarker() {
       if (previewMarker) {
         map.removeLayer(previewMarker);
         previewMarker = null;
       }
+      dimCurrentMarker(false);
+      setReadoutsHighlight(replayState.playing ? 'live' : null);
+      updateProfileSyncOverlay(
+        replayState.currentDistM,
+        replayState.playing ? 'playing' : (hasElevation ? 'current' : 'hidden'),
+      );
     }
 
     function syncChartToDist(distM) {
@@ -933,40 +1283,75 @@
       if (source === 'chart-hover' && replayState.playing) return;
 
       const pos = interpolateAtDist(replayPath, distM);
-      if (!pos || !currentMarker) return;
+      if (!pos) return;
+
+      const isPreview = source === 'chart-hover';
+      const isPlaying = source === 'replay' && replayState.playing;
+
+      if (isPreview) {
+        if (!previewMarker) {
+          previewMarker = L.marker([pos.lat, pos.lon], {
+            icon: L.divIcon(createSyncMarkerIcon('preview')),
+            zIndexOffset: 1100,
+          }).addTo(map);
+        } else {
+          previewMarker.setLatLng([pos.lat, pos.lon]);
+        }
+        dimCurrentMarker(true);
+        updateProfileSyncOverlay(distM, 'preview');
+        setReadoutsHighlight('preview');
+        updateProfileReadouts(distM);
+        syncChartToDist(distM);
+        return;
+      }
 
       clearPreviewMarker();
-      currentMarker.setLatLng([pos.lat, pos.lon]);
+      replayState.currentDistM = distM;
+
+      if (currentMarker) {
+        currentMarker.setLatLng([pos.lat, pos.lon]);
+        const variant = isPlaying ? 'playing' : 'current';
+        currentMarker.setIcon(L.divIcon(createSyncMarkerIcon(variant)));
+        dimCurrentMarker(false);
+      }
+
+      const overlayVariant = isPlaying ? 'playing' : (hasElevation ? 'current' : 'hidden');
+      updateProfileSyncOverlay(distM, overlayVariant);
+      setReadoutsHighlight(isPlaying ? 'live' : null);
       updateProfileReadouts(distM);
 
       if (opts && opts.panMap) {
         map.panTo([pos.lat, pos.lon], { animate: true, duration: 0.25 });
       }
 
-      if (opts && opts.showPhotoPopup && !opts.skipPhotoPopup) {
-        const near = nearestPhoto(photos, pos.lat, pos.lon);
-        if (near) openPhotoPopup(near, false);
+      if (mapMode === 'gpsLog') {
+        const isForwardReplay = source === 'replay' && replayState.playing
+          && distM >= replayState.lastSyncedDistM - 0.5;
+        const changedPhoto = syncGpsLogTimelineAtDist(distM, {
+          source,
+          allowBackward: !isForwardReplay || !!(opts && opts.allowBackward),
+          keepTimeline: !!(opts && opts.skipPhotoPopup),
+        });
+        if (opts && opts.showPhotoPopup && !opts.skipPhotoPopup && changedPhoto) {
+          openPhotoPopup(changedPhoto, false);
+        }
+      } else {
+        if (opts && opts.showPhotoPopup && !opts.skipPhotoPopup) {
+          const near = nearestPhoto(photos, pos.lat, pos.lon);
+          if (near) openPhotoPopup(near, false);
+        }
+
+        const nearPhoto = nearestPhoto(photos, pos.lat, pos.lon);
+        if (nearPhoto) setTimelineActive(nearPhoto._entryKey);
+        else if (!(opts && opts.skipPhotoPopup)) setTimelineActive(null);
       }
 
-      const nearPhoto = nearestPhoto(photos, pos.lat, pos.lon);
-      if (nearPhoto) setTimelineActive(nearPhoto.thumb);
-      else if (!(opts && opts.skipPhotoPopup)) setTimelineActive(null);
-
-      if (source !== 'chart-hover') {
-        syncChartToDist(distM);
-      }
+      syncChartToDist(distM);
     }
 
     function previewChartPosition(distM) {
       if (replayState.playing) return;
-      const pos = interpolateAtDist(replayPath, distM);
-      if (!pos) return;
-      if (!previewMarker) {
-        previewMarker = L.marker([pos.lat, pos.lon], { icon: previewIcon, zIndexOffset: 999 }).addTo(map);
-      } else {
-        previewMarker.setLatLng([pos.lat, pos.lon]);
-      }
-      updateProfileReadouts(distM);
+      setPositionAtDist(distM, { source: 'chart-hover', panMap: false, skipPhotoPopup: true });
     }
 
     /** Elevation Profile（標高プロファイル） */
@@ -986,6 +1371,8 @@
       const yBounds = elevationYBounds(eleValues);
       const totalKm = totalRouteDistM / 1000;
       const xAxis = distanceXAxisConfig(totalKm);
+
+      ensureProfileSyncOverlay();
 
       const ctx = document.getElementById('elevation-chart').getContext('2d');
       elevationChart = new Chart(ctx, {
@@ -1024,12 +1411,20 @@
                   const pt = elevationChartSeries[item.dataIndex];
                   const distM = pt?.distM ?? 0;
                   const seg = segmentAtDist(replayPath, distM);
-                  const lines = [`標高 ${Math.round(item.parsed.y)} m`];
+                  const lines = [
+                    `距離 ${formatDist(distM)}`,
+                    `標高 ${Math.round(item.parsed.y)} m`,
+                  ];
                   if (seg) {
+                    const posMs = interpolateTimeMs(seg.a, seg.b, seg.frac);
+                    if (posMs != null) lines.push(`時刻 ${formatLocalTime(posMs)}`);
                     const speed = instantSpeedKmh(seg.a, seg.b);
                     const grade = instantGradePct(seg.a, seg.b);
                     if (speed != null) lines.push(`速度 ${formatSpeed(speed)}`);
                     if (grade != null) lines.push(`勾配 ${formatGrade(grade)}`);
+                    const startMs = parseTimeMs(replayPath[0]?.time);
+                    const elapsedMs = posMs != null && startMs != null ? posMs - startMs : null;
+                    if (elapsedMs != null) lines.push(`経過 ${formatElapsedMs(elapsedMs)}`);
                   }
                   return lines;
                 },
@@ -1063,7 +1458,13 @@
           },
           onHover: (ev, elements) => {
             if (replayState.playing || chartSyncLock) return;
-            if (!elements.length) return;
+            if (!elements.length) {
+              if (!replayState.playing) {
+                clearPreviewMarker();
+                setPositionAtDist(replayState.currentDistM, { source: 'sync', panMap: false, skipPhotoPopup: true });
+              }
+              return;
+            }
             const pt = elevationChartSeries[elements[0].index];
             if (!pt) return;
             previewChartPosition(pt.distM);
@@ -1075,20 +1476,32 @@
       const chartWrap = document.getElementById('elevation-chart-wrap');
       if (chartPanel && typeof ResizeObserver !== 'undefined') {
         const chartRo = new ResizeObserver(() => {
-          if (elevationChart) elevationChart.resize();
+          if (elevationChart) {
+            elevationChart.resize();
+            requestAnimationFrame(() => {
+              if (previewMarker) return;
+              updateProfileSyncOverlay(
+                replayState.currentDistM,
+                replayState.playing ? 'playing' : (hasElevation ? 'current' : 'hidden'),
+              );
+            });
+          }
         });
         chartRo.observe(chartPanel);
         if (chartWrap) chartRo.observe(chartWrap);
       }
       requestAnimationFrame(() => {
-        if (elevationChart) elevationChart.resize();
+        if (elevationChart) {
+          elevationChart.resize();
+          updateProfileSyncOverlay(replayState.currentDistM, 'current');
+        }
       });
 
       const canvas = document.getElementById('elevation-chart');
       canvas.addEventListener('mouseleave', () => {
         if (replayState.playing) return;
         clearPreviewMarker();
-        setPositionAtDist(replayState.currentDistM, { source: 'sync', panMap: false });
+        setPositionAtDist(replayState.currentDistM, { source: 'sync', panMap: false, skipPhotoPopup: true });
       });
       canvas.addEventListener('click', (ev) => {
         if (replayState.playing) pause();
@@ -1097,10 +1510,25 @@
         const pt = elevationChartSeries[pts[0].index];
         if (!pt) return;
         replayState.currentDistM = pt.distM;
-        setPositionAtDist(pt.distM, { source: 'chart-click', panMap: true });
+        setPositionAtDist(pt.distM, { source: 'chart-click', panMap: true, skipPhotoPopup: true });
       });
     }
     initElevationChart();
+
+    refreshLayout = () => {
+      map.invalidateSize();
+      if (elevationChart) {
+        elevationChart.resize();
+        requestAnimationFrame(() => {
+          if (previewMarker) return;
+          updateProfileSyncOverlay(
+            replayState.currentDistM,
+            replayState.playing ? 'playing' : (hasElevation ? 'current' : 'hidden'),
+          );
+        });
+      }
+    };
+    window.addEventListener('resize', refreshLayout);
 
     const startMs = parseTimeMs(replayPath[0]?.time);
     const endMs = parseTimeMs(replayPath[replayPath.length - 1]?.time);
@@ -1120,6 +1548,7 @@
       document.getElementById('btn-play').classList.remove('active');
       document.getElementById('btn-pause').classList.add('active');
       clearPreviewMarker();
+      setPositionAtDist(replayState.currentDistM, { source: 'sync', panMap: false, skipPhotoPopup: true });
     }
 
     function resolveHighlightPhoto(lat, lon, kind) {
@@ -1162,14 +1591,24 @@
       const elapsed = now - replayState.startRealMs;
       const dist = Math.min(replayState.startDistM + distForElapsed(elapsed), replayState.maxDistM);
       replayState.currentDistM = dist;
-      const pos = interpolateAtDist(replayPath, dist);
-      setPositionAtDist(dist, { source: 'replay', panMap: true });
+      const prevPhotoIdx = replayState.activePhotoIndex;
+      setPositionAtDist(dist, { source: 'replay', panMap: true, skipPhotoPopup: true });
 
-      if (pos && dist - replayState.lastPhotoDist > 15) {
-        const near = nearestPhoto(photos, pos.lat, pos.lon);
-        if (near) {
-          openPhotoPopup(near, false);
+      if (mapMode === 'gpsLog') {
+        if (replayState.activePhotoIndex !== prevPhotoIdx
+          && replayState.activePhotoIndex >= 0
+          && dist - replayState.lastPhotoDist > 5) {
+          openPhotoPopup(photos[replayState.activePhotoIndex], false);
           replayState.lastPhotoDist = dist;
+        }
+      } else {
+        const pos = interpolateAtDist(replayPath, dist);
+        if (pos && dist - replayState.lastPhotoDist > 15) {
+          const near = nearestPhoto(photos, pos.lat, pos.lon);
+          if (near) {
+            openPhotoPopup(near, false);
+            replayState.lastPhotoDist = dist;
+          }
         }
       }
 
@@ -1199,8 +1638,9 @@
       pause();
       replayState.currentDistM = 0;
       replayState.lastPhotoDist = -9999;
-      setPositionAtDist(0, { source: 'replay', panMap: true });
-      setTimelineActive(null);
+      replayState.activePhotoIndex = -1;
+      replayState.lastSyncedDistM = 0;
+      setPositionAtDist(0, { source: 'replay', panMap: true, allowBackward: true });
     });
 
     document.getElementById('btn-play').addEventListener('click', play);

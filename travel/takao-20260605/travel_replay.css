@@ -426,6 +426,25 @@ body {
   display: block;
 }
 
+.timeline-thumb .thumb-placeholder,
+.photo-popup .thumb-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 1.25rem;
+  color: #8a9aaa;
+  background: #2a3a4a;
+}
+
+.photo-popup .thumb-placeholder {
+  width: 240px;
+  height: 180px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
 .timeline-thumb .time-badge {
   position: absolute;
   bottom: 0;
@@ -495,20 +514,164 @@ body {
 }
 
 .photo-popup .name { font-size: 0.8rem; font-weight: 600; text-align: center; }
+.photo-popup .placement-debug {
+  font-size: 0.68rem;
+  color: #9aa0a6;
+  text-align: left;
+  margin: 0.35rem 0;
+  line-height: 1.35;
+  word-break: break-all;
+}
+.photo-popup .placement-hint {
+  font-size: 0.68rem;
+  color: #8ab4f8;
+  text-align: center;
+  margin: 2px 0 4px;
+}
 .photo-popup .coords { font-size: 0.72rem; color: #888; text-align: center; }
 
-.current-marker-wrap {
-  background: #e74c3c;
-  border: 3px solid #fff;
-  border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+/* —— Map / profile sync markers —— */
+.sync-marker-host {
+  background: transparent !important;
+  border: none !important;
 }
 
-.profile-preview-marker .current-marker-wrap {
-  background: #f39c12;
-  box-shadow: 0 0 0 2px rgba(243, 156, 18, 0.4);
+.sync-marker {
+  position: relative;
+  width: 22px;
+  height: 22px;
+}
+
+.sync-marker-core {
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.45);
+  z-index: 2;
+}
+
+.sync-marker-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  opacity: 0.55;
+  animation: sync-marker-pulse 2s ease-out infinite;
+  z-index: 1;
+}
+
+.sync-marker--current .sync-marker-core {
+  background: #00e5ff;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.75);
+}
+
+.sync-marker--current .sync-marker-pulse {
+  background: rgba(0, 229, 255, 0.35);
+}
+
+.sync-marker--playing .sync-marker-core {
+  background: #ffe066;
+  box-shadow: 0 0 14px rgba(255, 224, 102, 0.9);
+}
+
+.sync-marker--playing .sync-marker-pulse {
+  background: rgba(255, 224, 102, 0.4);
+  animation: sync-marker-pulse 1.1s ease-out infinite;
+}
+
+.sync-marker--preview .sync-marker-core {
+  background: #ffc107;
+  box-shadow: 0 0 10px rgba(255, 193, 7, 0.8);
+}
+
+.sync-marker--preview .sync-marker-pulse {
+  display: none;
+}
+
+.sync-marker-host.sync-marker-dimmed {
+  opacity: 0.35;
+}
+
+@keyframes sync-marker-pulse {
+  0% { transform: scale(0.55); opacity: 0.7; }
+  70% { transform: scale(1.35); opacity: 0; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+/* —— Elevation profile sync overlay —— */
+#profile-sync-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  display: none;
+}
+
+.profile-sync-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.14), rgba(0, 229, 255, 0.03));
+  border-right: 1px solid rgba(0, 229, 255, 0.12);
+}
+
+.profile-sync-vline {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  transform: translateX(-50%);
+  background: rgba(0, 229, 255, 0.55);
+  box-shadow: 0 0 6px rgba(0, 229, 255, 0.35);
+}
+
+.profile-sync-dot {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #00e5ff;
+  border: 2px solid #fff;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.85);
+}
+
+.profile-sync-overlay--preview .profile-sync-fill {
+  background: linear-gradient(90deg, rgba(255, 193, 7, 0.16), rgba(255, 193, 7, 0.03));
+  border-right-color: rgba(255, 193, 7, 0.2);
+}
+
+.profile-sync-overlay--preview .profile-sync-vline {
+  background: rgba(255, 193, 7, 0.65);
+  box-shadow: 0 0 6px rgba(255, 193, 7, 0.4);
+}
+
+.profile-sync-overlay--preview .profile-sync-dot {
+  background: #ffc107;
+  box-shadow: 0 0 10px rgba(255, 193, 7, 0.85);
+}
+
+.profile-sync-overlay--playing .profile-sync-fill {
+  background: linear-gradient(90deg, rgba(255, 224, 102, 0.16), rgba(255, 224, 102, 0.03));
+  border-right-color: rgba(255, 224, 102, 0.22);
+}
+
+.profile-sync-overlay--playing .profile-sync-vline {
+  background: rgba(255, 224, 102, 0.7);
+}
+
+.profile-sync-overlay--playing .profile-sync-dot {
+  background: #ffe066;
+  box-shadow: 0 0 12px rgba(255, 224, 102, 0.9);
+}
+
+#profile-readouts.profile-readouts--live .readout-value {
+  color: #ffe9a8;
+}
+
+#profile-readouts.profile-readouts--preview .readout-value {
+  color: #ffd966;
 }
 
 @media (max-width: 900px) {
