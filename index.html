@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SnapSwift - 軽量・高速な画像ビューア＆整理ツール</title>
-  <meta name="description" content="SnapSwift は、Windows / Linux / Android に対応した軽量・高速・広告なしの画像ビューア＆整理ツールです。Travel Replayでは、Treadなどで記録したGPSログと写真を組み合わせて旅を振り返れます。" />
+  <meta name="description" content="SnapSwift は、Windows / Linux / Android に対応した軽量・高速・広告なしの画像ビューア＆整理ツールです。大量写真整理、HEIC/HEIF、動画、PDF、GPSマップ、証明写真作成に対応。" />
   <meta property="og:title" content="SnapSwift - 軽量・高速な画像ビューア＆整理ツール" />
-  <meta property="og:description" content="Windows / Linux / Android 対応。写真管理、変換、動画、PDF、GPSマップ、Travel Replay。Treadと組み合わせて旅の軌跡を振り返れます。" />
+  <meta property="og:description" content="Windows / Linux / Android 対応。軽量・高速・広告なし。大量写真整理、変換、動画、PDF、GPSマップ、証明写真作成まで。" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://mttakao599.github.io/SnapSwift-site/ss_timeline.png" />
   <meta name="theme-color" content="#2563eb" />
@@ -105,45 +105,6 @@
     .screen-body { padding: 18px; }
     .screen-body h3 { margin: 0 0 6px; }
     .screen-body p { margin: 0; color: var(--muted); }
-    .travel-highlight {
-      background: linear-gradient(135deg, #0f172a, #1e3a8a);
-      color: #fff;
-      border-radius: 30px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(255,255,255,.12);
-    }
-    .travel-highlight-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 0; align-items: stretch; }
-    .travel-highlight-body { padding: 28px; }
-    .travel-highlight h3 { margin: 0 0 10px; font-size: 1.55rem; letter-spacing: -.03em; }
-    .travel-highlight p { color: #dbeafe; margin: 0 0 16px; }
-    .travel-highlight .pill { color: #dbeafe; background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.18); }
-    .travel-highlight-shot img { width: 100%; height: 100%; min-height: 300px; object-fit: cover; }
-
-    .app-link-card {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 22px;
-      box-shadow: 0 10px 28px rgba(15,23,42,.04);
-    }
-    .app-link-card h3 { margin: 0 0 8px; }
-    .app-link-card p { margin: 0 0 14px; color: var(--muted); }
-    .flow-steps {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin-top: 16px;
-    }
-    .flow-step {
-      background: var(--surface-soft);
-      border: 1px solid #cfe0f6;
-      border-radius: 18px;
-      padding: 16px;
-    }
-    .flow-step strong { display: block; margin-bottom: 4px; }
-    .flow-step span { color: var(--muted); font-size: .92rem; }
-
     .platform-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
     .platform-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
     .platform-card h3 { margin: 0 0 10px; }
@@ -165,10 +126,16 @@
     .footer-inner { display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
     .footer-links { display: flex; gap: 16px; flex-wrap: wrap; }
     .small { color: var(--muted); font-size: .92rem; }
+
+    .support-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 18px 0 12px; }
+    .btn-support-300 { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+    .btn-support-300:hover { border-color: #fb923c; transform: translateY(-1px); }
+    .btn-support-1000 { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .btn-support-1000:hover { border-color: #60a5fa; transform: translateY(-1px); }
+    .support-note { margin: 12px 0 0; color: var(--muted); font-size: .92rem; }
     @media (max-width: 900px) {
       .hero-grid, .feature-grid, .platform-grid, .code-grid, .privacy-grid { grid-template-columns: 1fr; }
       .screens { grid-template-columns: 1fr; }
-      .travel-highlight-grid, .flow-steps { grid-template-columns: 1fr; }
       .section-title { display: block; }
       .nav-links { display: none; }
       .hero { padding-top: 48px; }
@@ -183,14 +150,11 @@
       <nav class="nav-links" aria-label="Main navigation">
         <a href="#features">機能</a>
         <a href="#screenshots">スクリーンショット</a>
-        <a href="#travel-replay">Travel Replay</a>
-        <a href="#travel-apps">連携アプリ</a>
         <a href="#platforms">対応版</a>
-        <a href="#tools">Tools</a>
         <a href="#linux">Linux</a>
         <a href="#history">更新履歴</a>
         <a href="#privacy">プライバシー</a>
-        <a class="support-link" href="https://ko-fi.com/snapswift" target="_blank" rel="noopener">☕ 応援する</a>
+        <a class="support-link" href="#support">💙 開発支援</a>
       </nav>
     </div>
   </header>
@@ -201,32 +165,30 @@
         <div>
           <div class="badge-row">
             <span class="badge">Windows / Linux / Android 対応</span>
-            <span class="badge">v1.4.0</span>
+            <span class="badge">v1.3.1 安定版</span>
             <span class="badge">無料・広告なし</span>
           </div>
           <h1>写真管理を、<br />もっと速く。</h1>
-          <p>SnapSwift は、軽量・高速・広告なしの画像ビューア＆整理ツールです。画像閲覧、整理、HEIC変換、動画再生、PDF表示、GPSマップ、証明写真作成に加え、v1.4.0では旅や登山を振り返る Travel Replay に対応しました。</p>
+          <p>SnapSwift は、軽量・高速・広告なしの画像ビューア＆整理ツールです。画像閲覧、整理、HEIC変換、動画再生、PDF表示、GPSマップ、証明写真作成まで1本で行えます。</p>
           <div class="badge-row" aria-label="Key features">
             <span class="badge">⚡ 軽量・高速</span>
             <span class="badge">✅ 完全無料</span>
             <span class="badge">🔒 端末内処理中心</span>
             <span class="badge">🗂️ 大量画像整理</span>
-            <span class="badge">🗺️ Travel Replay</span>
           </div>
           <div class="hero-cta">
             <a class="btn btn-primary" href="https://github.com/MtTakao599/SnapSwift-site/releases" target="_blank" rel="noopener">Windows版をダウンロード</a>
             <a class="btn btn-secondary" href="https://github.com/MtTakao599/SnapSwift-site/releases" target="_blank" rel="noopener">Linux AppImage / RPM</a>
             <a class="btn btn-secondary" href="https://play.google.com/store/apps/details?id=com.snapswift.android" target="_blank" rel="noopener">Google Play（クローズドテスト中）</a>
-            <a class="btn btn-secondary" href="#travel-replay">Travel Replayを見る ↓</a>
             <a class="btn btn-secondary" href="#screenshots">スクリーンショットを見る ↓</a>
           </div>
-          <p class="hero-note">Windows版が基準実装です。Linux版は Ubuntu AppImage を基準に、Ubuntu / Mint / CachyOS / Fedora RPM で検証しています。v1.4.0ではGPSログやGPS付き写真からTravel Replay HTMLを生成できます。</p>
+          <p class="hero-note">Windows版が基準実装です。Linux版は <code>SnapSwift_1.4.0_x86_64.AppImage</code>（Ubuntu / Mint / CachyOS）と <code>SnapSwift-1.4.0-1.x86_64.rpm</code>（Fedora 推奨）を配布しています。</p>
         </div>
         <div class="hero-card">
-          <div class="hero-shot"><img src="https://mttakao599.github.io/SnapSwift-site/ss_timeline.png" alt="SnapSwift タイムライン画面" /></div>
+          <div class="hero-shot"><img src="ss_timeline.png" alt="SnapSwift タイムライン画面" /></div>
           <div class="hero-stats">
             <div class="stat"><strong>HEIC/HEIF</strong><span>iPhone写真にも対応</span></div>
-            <div class="stat"><strong>Travel Replay</strong><span>旅や登山を振り返り</span></div>
+            <div class="stat"><strong>動画・PDF</strong><span>画像と一緒に確認</span></div>
             <div class="stat"><strong>広告なし</strong><span>無料でシンプル</span></div>
           </div>
         </div>
@@ -237,15 +199,14 @@
       <div class="container">
         <div class="section-title">
           <h2>充実の機能、すべて無料</h2>
-          <p>普段使いの画像ビューアに、整理・変換・動画・PDF・地図・証明写真・Travel Replayまで詰め込みました。</p>
+          <p>普段使いの画像ビューアに、整理・変換・動画・PDF・地図・証明写真まで詰め込みました。</p>
         </div>
         <div class="feature-grid">
           <article class="feature-card"><div class="icon">🗓️</div><h3>日付別タイムライン</h3><p>撮影日でまとめて表示。大量の写真でも目的の1枚を探しやすく。</p></article>
           <article class="feature-card"><div class="icon">⚡</div><h3>高速整理モード</h3><p>前後移動・削除・お気に入りをキーボード中心で素早く操作。</p></article>
           <article class="feature-card"><div class="icon">🔍</div><h3>似た画像検索</h3><p>dHash・pHashで連写やリサイズ違いをグループ化して整理。</p></article>
           <article class="feature-card"><div class="icon">▶️</div><h3>動画再生</h3><p>画像と同じビューア内で動画を確認。速度変更、ループ、全画面にも対応。</p></article>
-                    <article class="feature-card"><div class="icon">🗺️</div><h3>GPSマッピング</h3><p>写真やGPSログを地図で確認。トラック表示も見やすく改善しました。</p></article>
-          <article class="feature-card"><div class="icon">⛰️</div><h3>Travel Replay</h3><p>GPX / JSON / KML やGPS付き写真から、地図・写真タイムライン・標高プロファイル付きのHTMLを生成できます。</p></article>
+          <article class="feature-card"><div class="icon">🗺️</div><h3>GPSマッピング</h3><p>写真やGPSログを地図で確認。トラック表示も見やすく改善しました。</p></article>
           <article class="feature-card"><div class="icon">🪪</div><h3>証明写真作成</h3><p>傾き補正、背景処理、サイズ選択、L判印刷レイアウト生成までアプリ内で完結。</p></article>
           <article class="feature-card"><div class="icon">📄</div><h3>PDFプレビュー</h3><p>PDFを全ページ縦スクロール表示。資料も画像と一緒に確認できます。</p></article>
           <article class="feature-card"><div class="icon">🔁</div><h3>画像変換・最適化</h3><p>WebP・JPG・PNGなどへ一括変換。SNSやブログ用の画像準備に便利。</p></article>
@@ -261,115 +222,34 @@
       <div class="container">
         <div class="section-title">
           <h2>実際の画面</h2>
-          <p>現在の SnapSwift の主要画面です。v1.4.0で追加したTravel Replayも確認できます。</p>
+          <p>現在の SnapSwift v1.3.1 の主要画面です。実際のスクリーンショットで使い心地を確認できます。</p>
         </div>
         <div class="screens">
-          <article class="screen-card"><img src="https://mttakao599.github.io/SnapSwift-site/ss_timeline.png" alt="タイムライン画面" /><div class="screen-body"><h3>大量の写真を日付でまとめて閲覧</h3><p>撮影日ごとのタイムラインで、思い出を自然にたどれます。大量の写真でも軽快に表示します。</p></div></article>
-          <article class="screen-card"><img src="https://mttakao599.github.io/SnapSwift-site/ss_viewer.png" alt="ビューア画面" /><div class="screen-body"><h3>画像も動画も同じビューアで</h3><p>写真を大きく表示しながら、前後移動・お気に入り・削除などを素早く操作できます。</p></div></article>
-          <article class="screen-card"><img src="https://mttakao599.github.io/SnapSwift-site/ss_menu.png" alt="レイアウト画面" /><div class="screen-body"><h3>見やすいレイアウト</h3><p>タイムライン、フォルダ、お気に入りなど、目的に合わせて写真を整理できます。</p></div></article>
-          <article class="screen-card"><img src="https://mttakao599.github.io/SnapSwift-site/ss_convert.png" alt="画像変換画面" /><div class="screen-body"><h3>まとめて変換・最適化</h3><p>HEICやWebPなどの画像を、用途に合わせてJPG/PNG/WebPへ変換できます。</p></div></article>
-          <article class="screen-card"><img src="https://mttakao599.github.io/SnapSwift-site/ss_idphoto.png" alt="証明写真作成画面" /><div class="screen-body"><h3>証明写真をアプリ内で作成</h3><p>履歴書、パスポート、マイナンバー、運転免許などに対応。背景変更や傾き補正も行えます。</p></div></article>
-          <article class="screen-card"><img src="https://mttakao599.github.io/SnapSwift-site/ss_layout.png" alt="証明写真完成画面" /><div class="screen-body"><h3>印刷用レイアウトも作成</h3><p>L判印刷向けのレイアウトを生成し、すぐに保存できます。</p></div></article>
-          <article class="screen-card"><img src="https://mttakao599.github.io/SnapSwift-site/travel/takao-20260605/FC2Takao20260605.png" alt="Travel Replay画面" /><div class="screen-body"><h3>Travel Replayで旅を振り返る</h3><p>ルート再生、写真タイムライン、標高プロファイルを1つのHTMLにまとめて表示できます。</p></div></article>
+          <article class="screen-card"><img src="ss_timeline.png" alt="タイムライン画面" /><div class="screen-body"><h3>大量の写真を日付でまとめて閲覧</h3><p>撮影日ごとのタイムラインで、思い出を自然にたどれます。大量の写真でも軽快に表示します。</p></div></article>
+          <article class="screen-card"><img src="ss_viewer.png" alt="ビューア画面" /><div class="screen-body"><h3>画像も動画も同じビューアで</h3><p>写真を大きく表示しながら、前後移動・お気に入り・削除などを素早く操作できます。</p></div></article>
+          <article class="screen-card"><img src="ss_menu.png" alt="レイアウト画面" /><div class="screen-body"><h3>見やすいレイアウト</h3><p>タイムライン、フォルダ、お気に入りなど、目的に合わせて写真を整理できます。</p></div></article>
+          <article class="screen-card"><img src="ss_convert.png" alt="画像変換画面" /><div class="screen-body"><h3>まとめて変換・最適化</h3><p>HEICやWebPなどの画像を、用途に合わせてJPG/PNG/WebPへ変換できます。</p></div></article>
+          <article class="screen-card"><img src="ss_idphoto.png" alt="証明写真作成画面" /><div class="screen-body"><h3>証明写真をアプリ内で作成</h3><p>履歴書、パスポート、マイナンバー、運転免許などに対応。背景変更や傾き補正も行えます。</p></div></article>
+          <article class="screen-card"><img src="ss_layout.png" alt="証明写真完成画面" /><div class="screen-body"><h3>印刷用レイアウトも作成</h3><p>L判印刷向けのレイアウトを生成し、すぐに保存できます。</p></div></article>
         </div>
       </div>
     </section>
-
-
-
-    <section id="travel-replay">
-      <div class="container">
-        <div class="section-title">
-          <h2>Travel Replay</h2>
-          <p>v1.4.0で追加した、旅・登山・ドライブを振り返るHTML生成機能です。Treadなどで記録したGPSログや、GPS付き写真から、地図、写真タイムライン、標高プロファイルをまとめて表示できます。</p>
-        </div>
-        <div class="travel-highlight">
-          <div class="travel-highlight-grid">
-            <div class="travel-highlight-body">
-              <h3>高尾山 Travel Replay サンプル</h3>
-              <p>GPX / JSON / KML のGPSログ、またはGPS付き写真だけで、ルート再生・写真ポップアップ・標高プロファイルを含むHTMLを出力できます。Treadで記録したGPX / CSV / KMLログと、SnapSwiftで管理している写真を組み合わせると、移動の記録と写真をひとつのTravel Replayとして振り返れます。生成したHTMLはGitHub Pagesやブログからリンクして公開できます。</p>
-              <div class="pill-list">
-                <span class="pill">GPX / JSON / KML</span>
-                <span class="pill">写真だけモード</span>
-                <span class="pill">標高プロファイル</span>
-                <span class="pill">OpenStreetMap</span>
-                <span class="pill">ローカル処理</span>
-              </div>
-              <div class="hero-cta">
-                <a class="btn btn-primary" href="https://mttakao599.github.io/SnapSwift-site/travel/takao-20260605/takao_travel_replay.html" target="_blank" rel="noopener">高尾山サンプルを開く</a>
-                <a class="btn btn-secondary" href="https://github.com/MtTakao599/SnapSwift-site/tree/main/travel/takao-20260605" target="_blank" rel="noopener">公開フォルダを見る</a>
-              </div>
-              <p class="small">※ サンプルは公開用に確認したデータを使用しています。位置情報を含むため、公開前の確認をおすすめします。</p>
-            </div>
-            <a class="travel-highlight-shot" href="https://mttakao599.github.io/SnapSwift-site/travel/takao-20260605/takao_travel_replay.html" target="_blank" rel="noopener" aria-label="高尾山 Travel Replay サンプルを開く">
-              <img src="https://mttakao599.github.io/SnapSwift-site/travel/takao-20260605/FC2Takao20260605.png" alt="SnapSwift Travel Replay 高尾山サンプル" />
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-
-    <section id="travel-apps">
-      <div class="container">
-        <div class="section-title">
-          <h2>Travel Replay 連携アプリ</h2>
-          <p>SnapSwift の Travel Replay は、GPSログ記録アプリ Tread と組み合わせることで、移動の軌跡と写真をひとつのHTMLとして振り返れます。</p>
-        </div>
-
-        <div class="platform-grid">
-          <article class="app-link-card">
-            <h3>📍 Tread</h3>
-            <p>スマートフォンでGPSログを記録するAndroidアプリです。GPX / CSV / KMLでエクスポートでき、Travel Replay用の軌跡データとして利用できます。</p>
-            <div class="pill-list"><span class="pill">Android GPSロガー</span><span class="pill">GPX / CSV / KML</span><span class="pill">端末内保存</span></div>
-            <div class="hero-cta">
-              <a class="btn btn-secondary" href="https://mttakao599.github.io/tread-site/" target="_blank" rel="noopener">Treadサイトを見る</a>
-            </div>
-          </article>
-
-          <article class="app-link-card">
-            <h3>⚡ SnapSwift</h3>
-            <p>写真管理・整理アプリです。GPS付き写真やGPSログを使って、地図・写真タイムライン・標高プロファイル付きのTravel Replay HTMLを生成できます。</p>
-            <div class="pill-list"><span class="pill">写真管理</span><span class="pill">GPS写真</span><span class="pill">Travel Replay生成</span></div>
-            <div class="hero-cta">
-              <a class="btn btn-primary" href="#travel-replay">Travel Replayを見る</a>
-            </div>
-          </article>
-
-          <article class="app-link-card">
-            <h3>🛠 SnapSwift Tools</h3>
-            <p>画像・PDF・動画の変換ツールです。旅の写真や動画を共有しやすい形式に変換・圧縮するときに利用できます。</p>
-            <div class="pill-list"><span class="pill">画像変換</span><span class="pill">PDF編集</span><span class="pill">動画圧縮</span></div>
-            <div class="hero-cta">
-              <a class="btn btn-secondary" href="#tools">Toolsを見る</a>
-            </div>
-          </article>
-        </div>
-
-        <div class="flow-steps">
-          <div class="flow-step"><strong>1. Treadで記録</strong><span>スマートフォンでGPSログを記録し、GPX / CSV / KMLとして出力します。</span></div>
-          <div class="flow-step"><strong>2. SnapSwiftで生成</strong><span>GPSログやGPS付き写真を読み込み、Travel Replay HTMLを作成します。</span></div>
-          <div class="flow-step"><strong>3. 旅を振り返る</strong><span>ルート再生、写真タイムライン、標高プロファイルをまとめて確認できます。</span></div>
-        </div>
-      </div>
-    </section>
-
 
     <section id="platforms">
       <div class="container">
         <div class="section-title">
           <h2>対応版</h2>
-          <p>Windows版を基準に、Linux版とAndroid版も展開しています。v1.4.0ではTravel Replayを追加しました。</p>
+          <p>Windows版を基準に、Linux版とAndroid版も展開しています。</p>
         </div>
         <div class="platform-grid">
           <article class="platform-card">
-            <h3>Windows v1.4.0</h3>
-            <p>メイン版。タイムライン、高速整理、類似画像検索、動画、PDF、GPSマップ、証明写真作成、Travel Replayまで対応。</p>
-            <div class="pill-list"><span class="pill">NSIS</span><span class="pill">WebView2</span><span class="pill">Travel Replay</span></div>
+            <h3>Windows v1.3.1</h3>
+            <p>メイン版。タイムライン、高速整理、類似画像検索、動画、PDF、GPSマップ、証明写真作成まで対応。</p>
+            <div class="pill-list"><span class="pill">NSIS</span><span class="pill">WebView2</span><span class="pill">基準実装</span></div>
           </article>
           <article class="platform-card">
-            <h3>Linux v1.4.0</h3>
-            <p>Ubuntu AppImageを基準に展開。FedoraではRPM版を推奨します。Travel Replay追加後のLinux確認を進めています。</p>
+            <h3>Linux v1.3.1</h3>
+            <p>Ubuntu AppImageを基準に、Ubuntu / Mint / CachyOSで確認済み。FedoraではRPM版を推奨します。</p>
             <div class="pill-list"><span class="pill">AppImage</span><span class="pill">RPM</span><span class="pill">HEIC fallback</span></div>
           </article>
           <article class="platform-card">
@@ -381,31 +261,15 @@
       </div>
     </section>
 
-
-    <section id="tools">
-      <div class="container">
-        <div class="section-title">
-          <h2>SnapSwift Tools</h2>
-          <p>画像・PDF・動画の変換や編集を端末内だけで行える、無料・広告なしのツール集です。</p>
-        </div>
-        <div class="feature-grid">
-          <article class="feature-card"><div class="icon">🖼️</div><h3>画像変換</h3><p>JPG / PNG / WebP、HEIC / HEIF、AVIF入力、EXIF保持、GPS情報のみ削除、EXIF完全削除、一括変換に対応。</p></article>
-          <article class="feature-card"><div class="icon">📄</div><h3>PDFツール</h3><p>画像→PDF、PDF→画像、PDF結合、PDF分割、PDF圧縮、PDFページ削除、サムネ付き並び替えに対応。</p></article>
-          <article class="feature-card"><div class="icon">🎞️</div><h3>動画ツール</h3><p>動画圧縮と動画→GIF作成に対応。端末内で処理し、保存・共有できます。</p></article>
-        </div>
-      </div>
-    </section>
-
-
     <section id="linux">
       <div class="container">
         <div class="section-title">
           <h2>Linux版について</h2>
-          <p>v1.4.0ではTravel Replay追加後のLinux版を再検証しています。</p>
+          <p>v1.3.1ではLinux版を安定化し、ディストリビューション差を整理しました。</p>
         </div>
         <div class="linux-note">
           <h3>配布と推奨環境</h3>
-          <p>Linux版は Ubuntu 24.04 でビルドした AppImage を基準に、Ubuntu / Linux Mint / CachyOS で確認します。Fedoraでは AppImage より RPM版を推奨します。</p>
+          <p>Linux版は Ubuntu 24.04 でビルドした <code>SnapSwift_1.4.0_x86_64.AppImage</code> を基準に、Ubuntu / Linux Mint / CachyOS で動作確認しています。Fedoraでは <code>SnapSwift-1.4.0-1.x86_64.rpm</code> を推奨します（<a href="https://github.com/MtTakao599/SnapSwift-site/releases" target="_blank" rel="noopener">Releases</a>）。</p>
           <p>HEIC/HEIFや一部動画形式では、OS側の ffmpeg / libheif / GStreamer 環境に影響される場合があります。Fedoraでは RPM Fusion / freeworld ffmpeg が必要になる場合があります。</p>
           <div class="code-grid">
             <div><strong>Ubuntu / Debian</strong><pre>sudo apt install ffmpeg xdg-utils \
@@ -443,17 +307,6 @@
           <p>最新の主な変更点です。</p>
         </div>
         <div class="timeline">
-          <article class="release">
-            <h3>Windows / Linux v1.4.0</h3>
-            <ul>
-              <li>新機能 Travel Replay を追加</li>
-              <li>GPX / JSON / KML のGPSログから、地図・写真タイムライン・標高プロファイル付きHTMLを生成</li>
-              <li>GPS付き写真だけでTravel Replayを作成する「写真だけモード」を追加</li>
-              <li>OpenStreetMap / OpenTopoMap / Esri Satellite / Carto Dark / CyclOSM レイヤに対応</li>
-              <li>Replay速度、地図追従、写真ポップアップ、タイムライン同期に対応</li>
-              <li>ハイライト、カロリー、食べ物・アクティビティ換算を含む旅のレポートを追加</li>
-            </ul>
-          </article>
           <article class="release">
             <h3>Windows / Linux v1.3.1</h3>
             <ul>
@@ -508,8 +361,12 @@
       <div class="container">
         <div class="linux-note">
           <h2>SnapSwift を応援する</h2>
-          <p>アプリは完全無料です。気に入ってくださった方は、開発の応援も歓迎です。</p>
-          <a class="btn btn-secondary" href="https://ko-fi.com/snapswift" target="_blank" rel="noopener">☕ 開発者を応援する</a>
+          <p>SnapSwift は無料でご利用いただけます。開発継続を応援していただける場合は、任意で開発支援をお願いいたします。</p>
+          <div class="support-actions" aria-label="SnapSwift 開発支援">
+            <a class="btn btn-support-300" href="https://buy.stripe.com/8x23cv9SL8xAcoNf6I83C01" target="_blank" rel="noopener">300円で支援する</a>
+            <a class="btn btn-support-1000" href="https://buy.stripe.com/5kQeVd3un9BE2Od7Eg83C00" target="_blank" rel="noopener">1,000円で支援する</a>
+          </div>
+          <p class="support-note">支払いはStripeで安全に処理されます。支援は任意であり、アプリ本体の基本機能は無料でご利用いただけます。</p>
         </div>
       </div>
     </section>
@@ -521,10 +378,8 @@
       <div class="footer-links">
         <a href="#features">機能</a>
         <a href="#screenshots">スクリーンショット</a>
-        <a href="#travel-replay">Travel Replay</a>
         <a href="#history">更新履歴</a>
         <a href="#privacy">プライバシー</a>
-        <a href="https://mttakao599.github.io/tread-site/" target="_blank" rel="noopener">Tread</a>
         <a href="mailto:snapswift.app@gmail.com">メールで問い合わせる</a>
       </div>
     </div>
